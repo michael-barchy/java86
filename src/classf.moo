@@ -1,0 +1,31 @@
+SUB ReadU(FileHandle%, Bytes%)
+    Buff% = MALLOC(Bytes%)
+
+    FOR I% = 1 TO Bytes%
+        B$ = SPACE(1)
+        B$ = FGET(FileHandle%)
+        U% = ASC(B$)
+        U@ = U%
+        PTR% = Bytes% - I%
+        PTR% = PTR% + Buff%
+        MEMSETB(U@, PTR%, 1)
+    NEXT
+
+    U4& = MGET(Buff%)
+    U2% = MGET(Buff%)
+
+    MFREE(Buff%)
+END SUB
+
+SUB ParseClass(F%)
+    CALL ReadU(F%, 4)
+
+    Magic$ = HEX32(U4&)
+    PRINT Magic$ + "\r\n"
+    IF Magic$ <> "cafebabe" THEN
+        FCLOSE(F%)
+        EXIT SUB
+    ENDIF
+
+    CALL ReadU(F%, 4) 'Ignore versions
+END SUB

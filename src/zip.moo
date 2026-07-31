@@ -29,13 +29,14 @@ SUB ZipFind (JarIndex%, ClassName$)
             FSEEK(F%, Offset&)
 
             IF CurrentName$ = ClassName$ THEN
-                SearchResult% = 1
                 FoundPosition& = FPOS(F%)
 
                 CachePtr% = CachePtr% + 1
                 IF CachePtr% > 10 THEN
                     CachePtr% = 1
                 ENDIF
+
+                SearchResult% = CachePtr%
 
                 CacheJarIdx%[CachePtr%] = JarIndex%
                 CachePos&[CachePtr%] = FoundPosition&
