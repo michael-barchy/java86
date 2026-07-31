@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        ".command": "shellscript",
+        ".moo": "vb",
+        ".h": "vb"
+    },
+    "files.eol": "\r\n",
+    "editor.tabSize": 4,
+    "editor.useTabStops": true
+}
