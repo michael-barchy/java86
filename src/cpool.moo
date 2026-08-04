@@ -10,7 +10,13 @@ SUB ReadConstantPool(FileHandle%, CP_IDX%)
     ENDIF
 
     CP_LEN% = CP_COUNT% * %CP_ENTRY_SIZE
-    PTR%  = MALLOC(CP_LEN%)
+    #IFDEF FAR
+        SEGMENT% = FARMALLOC(CP_LEN%)
+        PTR% = 0
+    #ENDIF
+    #IFNDEF FAR
+        PTR%  = MALLOC(CP_LEN%)
+    #ENDIF
     CP_CACHE%[CP_IDX%] = PTR%
     JarPos& = JAR_CACHE_POS&[CP_IDX%]
 
@@ -18,7 +24,12 @@ SUB ReadConstantPool(FileHandle%, CP_IDX%)
         TAG@ = FGET(FileHandle%)
         'PRINT "Tag: " + TAG@ + ", PTR: " + PTR% + "\r\n"
 
-        MEMSETB(TAG@, PTR%, 1)
+        #IFDEF FAR
+            FARMEMSETB(TAG@, SEGMENT%, PTR%, 1)
+        #ENDIF
+        #IFNDEF FAR
+            MEMSETB(TAG@, PTR%, 1)
+        #ENDIF
         PTR% = PTR% + 1
 
         IF TAG@ = %CP_Utf8 THEN

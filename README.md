@@ -43,3 +43,13 @@ public class Hello {
     }
 }
 ```
+
+## Memory usage
+
+- Jar files cache (10) = 80 bytes
+- Class files constant pool cache = 60 bytes + (contant pool size * 9 bytes)
+- Methods cache (100) = 800 bytes
+
+Total : 940 bytes - Contant pool size of 100 entries : 9940 bytes
+
+Java86 can be compiled to use FAR memory (compile using MRC JAVA !FAR) @todo
