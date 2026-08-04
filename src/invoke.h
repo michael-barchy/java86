@@ -1,0 +1,1 @@
+SUB InvokeStatic(ClassName$, MethodDescription$)
