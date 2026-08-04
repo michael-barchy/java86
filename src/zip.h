@@ -11,12 +11,10 @@ TYPE ZipLocalHeader _
     FileNameLength%, _
     ExtraFieldLength%
 
-DIM FoundPosition&
-DIM SearchResult%
-DIM CacheJarIdx%[10]
-DIM CacheCRC16%[10]
-DIM CachePos&[10]
-DIM CachePtr%
+DIM JAR_CACHE_IDX%[10]
+DIM JAR_CACHE_CRC%[10]
+DIM JAR_CACHE_POS&[10]
+DIM JAR_RESULT%
 
 SUB ZipFind (JarIndex%, ClassName$)
 

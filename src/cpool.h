@@ -1,5 +1,7 @@
 DIM CP_CACHE%[10]
+DIM CP_POS&[10] 'File position of the end of the constant pool
 DIM CP_COUNT%
+DIM CP_ENTRY$
 
 %CP_ENTRY_SIZE = 9
 
@@ -15,4 +17,5 @@ DIM CP_COUNT%
 %CP_InterfaceMethodref = 11
 %CP_NameAndType = 12
 
-SUB READ_CONSTANT_POOL(FILE_HANDLE%, CP_IDX%)
+SUB ReadConstantPool(FileHandle%, CP_IDX%)
+SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)

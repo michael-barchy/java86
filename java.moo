@@ -7,6 +7,7 @@ BEGIN DEF
 #INCLUDE src/zip.h
 #INCLUDE src/classf.h
 #INCLUDE src/cpool.h
+#INCLUDE src/method.h
 
 BEGIN CODE
 
