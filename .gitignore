@@ -1,4 +1,10 @@
 dosbox-x.app
+node_modules
 .DS_Store
+*.img
+*.bin
 *.EXE
+!ASM.EXE
 *.COM
+*.JAR
+*.WASM
