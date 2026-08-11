@@ -35,105 +35,105 @@ SUB ReadConstantPool(FileHandle%, CP_IDX%)
         ENDIF
 
         IF TAG@ = %CP_Integer THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 4
         ENDIF
 
         IF TAG@ = %CP_Float THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 4
         ENDIF
 
         IF TAG@ = %CP_Long THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL3% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL3%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL4% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL4%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
         ENDIF
 
         IF TAG@ = %CP_Double THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL3% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL3%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL4% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL4%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
         ENDIF
 
         IF TAG@ = %CP_Class THEN
-            TMP_VAL% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 6
         ENDIF
 
         IF TAG@ = %CP_String THEN
-            TMP_VAL% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 6
         ENDIF
 
         IF TAG@ = %CP_Fieldref THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 4
         ENDIF
 
         IF TAG@ = %CP_Methodref THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 4
         ENDIF
 
         IF TAG@ = %CP_InterfaceMethodref THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 4
         ENDIF
 
         IF TAG@ = %CP_NameAndType THEN
-            TMP_VAL1% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL1%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
-            TMP_VAL2% = FGET(FileHandle%)
-            MEMSETW(TMP_VAL2%, PTR%, 1)
+            CALL ReadU(FileHandle%, 2)
+            MEMSETW(U2%, PTR%, 1)
             PTR% = PTR% + 2
             PTR% = PTR% + 4
         ENDIF
@@ -151,16 +151,38 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
     CP_TAG$ = SPACE(1)
     CP_TAG$ = MGET(CP_PTR%)
     CP_TAG% = ASC(CP_TAG$)
+    CP_ENTRY% = 0
+    CP_ENTRY2% = 0
     CP_ENTRY$ = ""
 
     'PRINT "CP TAG: " + CP_TAG% + "\r\n"
-    If CP_TAG% = %CP_Utf8 THEN
+    IF CP_TAG% = %CP_String THEN
+        Offset& = FPOS(FileHandle%)
+        CP_PTR% = CP_PTR% + 1
+        STRING_INDEX% = MGET(CP_PTR%)
+        'PRINT "STRING_INDEX: " + STRING_INDEX% + "\r\n"
+        FSEEK(FileHandle%, Offset&)
+        CP_ENTRY% = STRING_INDEX%
+        EXIT SUB
+    ENDIF
+
+    IF CP_TAG% = %CP_Class THEN
+        Offset& = FPOS(FileHandle%)
+        CP_PTR% = CP_PTR% + 1
+        STRING_INDEX% = MGET(CP_PTR%)
+        'PRINT "STRING_INDEX: " + STRING_INDEX% + "\r\n"
+        FSEEK(FileHandle%, Offset&)
+        CP_ENTRY% = STRING_INDEX%
+        EXIT SUB
+    ENDIF
+
+    IF CP_TAG% = %CP_Utf8 THEN
         Offset& = FPOS(FileHandle%)
         CP_PTR% = CP_PTR% + 1
         CP_OFFSET% = MGET(CP_PTR%)
         CP_OFFSET& = JAR_CACHE_POS&[CP_IDX%]
         CP_OFFSET& = CP_OFFSET& + CP_OFFSET%
-        'PRINT "CP OFFSET: " + CP_OFFSET& + "\r\n"
+        'PRINT "CP OFFSET: " + CP_OFFSET% + ", " + CP_OFFSET& + "\r\n"
         FSEEK(FileHandle%, CP_OFFSET&)
         CALL ReadU(FileHandle%, 2)
         CPLen% = U2%
@@ -170,5 +192,30 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
         'PRINT "CP VALUE: " + CPValue$ + "\r\n"
         FSEEK(FileHandle%, Offset&)
         CP_ENTRY$ = CPValue$
+        EXIT SUB
+    ENDIF
+
+    IF CP_TAG% = %CP_Methodref THEN
+        Offset& = FPOS(FileHandle%)
+        CP_PTR% = CP_PTR% + 1
+        CLASS_INDEX% = MGET(CP_PTR%)
+        CP_PTR% = CP_PTR% + 2
+        METHOD_INDEX% = MGET(CP_PTR%)
+        FSEEK(FileHandle%, Offset&)
+        CP_ENTRY% = CLASS_INDEX%
+        CP_ENTRY2% = METHOD_INDEX%
+        EXIT SUB
+    ENDIF
+
+    IF CP_TAG% = %CP_NameAndType THEN
+        Offset& = FPOS(FileHandle%)
+        CP_PTR% = CP_PTR% + 1
+        NAME_INDEX% = MGET(CP_PTR%)
+        CP_PTR% = CP_PTR% + 2
+        TYPE_INDEX% = MGET(CP_PTR%)
+        FSEEK(FileHandle%, Offset&)
+        CP_ENTRY% = NAME_INDEX%
+        CP_ENTRY2% = TYPE_INDEX%
+        EXIT SUB
     ENDIF
 END SUB

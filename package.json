@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "node build.mjs"
+    "build": "./build.command && node build.mjs"
   },
   "dependencies": {
     "canvas": "^3.2.3",

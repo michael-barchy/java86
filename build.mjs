@@ -103,7 +103,9 @@ const files = [
     'JAVA.MOO',
     'JAVA.H',
     'NATIVE.JAR',
-    'HELLO.JAR'
+    'HELLO.JAR',
+    'UTILS.JAR',
+    'SHELL.JAR'
 ];
 
 readdirSync(join(__dirname, 'src')).forEach(file => {

@@ -1,6 +1,8 @@
 DIM CP_CACHE%[10]
 DIM CP_POS&[10] 'File position of the end of the constant pool
 DIM CP_COUNT%
+DIM CP_ENTRY%
+DIM CP_ENTRY2%
 DIM CP_ENTRY$
 
 %CP_ENTRY_SIZE = 9

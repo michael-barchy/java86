@@ -1,6 +1,7 @@
 SUB ReadU(FileHandle%, Bytes%)
     Buff% = MALLOC(Bytes%)
 
+    U% = 0
     FOR I% = 1 TO Bytes%
         B$ = SPACE(1)
         B$ = FGET(FileHandle%)
@@ -13,6 +14,7 @@ SUB ReadU(FileHandle%, Bytes%)
 
     U4& = MGET(Buff%)
     U2% = MGET(Buff%)
+    U1% = U%
 
     MFREE(Buff%)
 END SUB
@@ -21,7 +23,7 @@ SUB ParseClass(F%)
     CALL ReadU(F%, 4)
 
     Magic$ = HEX32(U4&)
-    PRINT Magic$ + "\r\n"
+    'PRINT Magic$ + "\r\n"
     IF Magic$ <> "cafebabe" THEN
         FCLOSE(F%)
         EXIT SUB
