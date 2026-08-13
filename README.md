@@ -8,6 +8,18 @@ It fits in 64K of memory and runs on any 8086-compatible processor running the D
 
 Java86 uses the MoonRock compiler that compiles Basic-like code to assembly, then compiles using MASM Assembler.
 
+Requirements:
+- node
+- java
+
+The build script downloads necessary files and compiles classes using Janino, then compiles Java86 using V86 emulator.
+
+```shell
+git clone https://github.com/michael-barchy/java86.git
+npm i
+npm run build
+```
+
 ## Using
 
 Java86 works like the standard Java VM with many limitations:
