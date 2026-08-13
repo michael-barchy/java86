@@ -1,10 +1,4 @@
-dosbox-x.app
+bin
+build
 node_modules
 .DS_Store
-*.img
-*.bin
-*.EXE
-!ASM.EXE
-*.COM
-*.JAR
-*.WASM

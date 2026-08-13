@@ -1,12 +1,11 @@
 {
   "scripts": {
-    "build": "./build.command && node build.mjs"
+    "build": "node build.mjs"
   },
   "dependencies": {
-    "canvas": "^3.2.3",
-    "jsdom": "^29.1.1",
     "libmount": "^0.6.0",
     "node-fetch": "^3.3.2",
-    "v86": "^0.5.424"
+    "v86": "^0.5.424",
+    "zip-lib": "^1.4.0"
   }
 }
