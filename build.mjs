@@ -139,6 +139,7 @@ buildNames.forEach(file => {
 // source files
 const files = [
     'MAKE.BAT',
+    'SHELL.BAT',
     'JAVA.MOO',
     'JAVA.H'
 ];

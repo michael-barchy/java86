@@ -2,7 +2,7 @@ public class Shell {
     public static void main(String[] args) {
         Native.print("Welcome !\r\n");
         String input = " ";
-        while ("exit" != input) {
+        while (!StringUtils.equals("exit", input)) {
             Native.print("# ");
             input = Native.input();
             Native.print("\r\n");

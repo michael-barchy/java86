@@ -1,13 +1,21 @@
 SUB ZipFind (JarIndex%, ClassName$)
-    CALL CalcCRC16 (ClassName$)
-    TargetCRC16% = CalculatedCRC16%
     JAR_RESULT% = 0
 
-    FOR i% = 1 TO 10
-        ValidIdx% = JAR_CACHE_IDX%[i%] > 0
-        MatchCRC% = JAR_CACHE_CRC%[i%] = TargetCRC16%
-        IF ValidIdx% THEN
-            IF MatchCRC% THEN
+    CALL CalcCRC16 (ClassName$)
+    TargetCRC16% = CalculatedCRC16%
+   'PRINT "CRC: " + ClassName$ + ", " + TargetCRC16% + "\r\n"
+
+    FOR i% = 1 TO %MAX_JAR_CACHE
+        ValidIdx% = 0
+        IF JAR_CACHE_IDX%[i%] > 0 THEN
+            ValidIdx% = 1
+        ENDIF
+        MatchCRC% = 0
+        IF JAR_CACHE_CRC%[i%] = TargetCRC16% THEN
+            MatchCRC% = 1
+        ENDIF
+        IF ValidIdx% = 1 THEN
+            IF MatchCRC% = 1 THEN
                 JAR_RESULT% = i%
                 EXIT SUB
             ENDIF
@@ -28,12 +36,16 @@ SUB ZipFind (JarIndex%, ClassName$)
             FSEEK(F%, Offset&)
 
             IF CurrentName$ = ClassName$ THEN
+               'PRINT "Found: " + CurrentName$ + ", " + ClassName$ + "\r\n"
                 FoundPosition& = FPOS(F%)
 
-                JAR_RESULT% = JAR_RESULT% + 1
-                IF JAR_RESULT% > 10 THEN
-                    JAR_RESULT% = 1
+                JAR_CACHE_COUNT% = JAR_CACHE_COUNT% + 1
+               'PRINT "JAR_CACHE_COUNT: " + JAR_CACHE_COUNT% + "\r\n"
+                IF JAR_CACHE_COUNT% > %MAX_JAR_CACHE THEN
+                    JAR_CACHE_COUNT% = 1
                 ENDIF
+
+                JAR_RESULT% = JAR_CACHE_COUNT%
 
                 PTR% = CP_CACHE%[JAR_RESULT%]
                 IF PTR% > 0 THEN

@@ -8,8 +8,8 @@ BEGIN DEF
 #INCLUDE src/classf.h
 #INCLUDE src/cpool.h
 #INCLUDE src/method.h
-#INCLUDE src/invoke.h
 #INCLUDE src/opcode.h
+#INCLUDE src/process.h
 
 BEGIN CODE
 
