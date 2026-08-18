@@ -1,2 +1,2 @@
 *.moo linguist-language=BASIC
-.h linguist-language=BASIC
+*.h linguist-language=BASIC
