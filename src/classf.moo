@@ -26,7 +26,8 @@ SUB ParseClass(F%)
     'PRINT Magic$ + "\r\n"
     IF Magic$ <> "cafebabe" THEN
         FCLOSE(F%)
-        EXIT SUB
+        PRINT "Invalid magic: " + Magic$ + "\r\n"
+        END
     ENDIF
 
     CALL ReadU(F%, 4) 'Ignore versions

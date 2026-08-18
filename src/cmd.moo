@@ -12,7 +12,13 @@ SUB ParseCmd ()
         c$ = MID(temp$, i%, 1)
         IF i% > 0 THEN
             i% = i% - 1
-            JAR_FILES$[JAR_COUNT%] = LEFT(temp$, i%)
+            JarFile$ = LEFT(temp$, i%)
+            StrLen% = LEN(JarFile$)
+            StrLen% = StrLen% + 2
+            STR_PTR% = MALLOC(StrLen%)
+            'PRINT JarFile$ + ", " + StrLen% + + ", " + STR_PTR% + "\r\n"
+            JAR_FILES%[JAR_COUNT%] = STR_PTR%
+            MEMCOPY(STRPTR(JarFile$), STR_PTR%, StrLen%)
             i% = i% + 2
             temp$ = MID(temp$, i%)
         ELSE
@@ -23,4 +29,13 @@ SUB ParseCmd ()
             EXIT WHILE
         ENDIF
     WEND
+END SUB
+
+SUB GetJarFile(JarIdx%)
+    STR_PTR% = JAR_FILES%[JarIdx%]
+    StrLen% = MGET(STR_PTR%)
+    JAR_FILE$ = SPACE(StrLen%)
+    StrLen% = StrLen% + 2
+    MEMCOPY(STR_PTR%, STRPTR(JAR_FILE$), StrLen%)
+    'PRINT JAR_FILE$ + ", " + STR_PTR% + ", " + StrLen% + "\r\n"
 END SUB

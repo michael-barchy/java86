@@ -2,7 +2,8 @@ SUB Java ()
     CALL ParseCmd
     IF JAR_COUNT% > 0 THEN
         FOR I% = 1 TO JAR_COUNT%
-            'PRINT "Jar file: " + JAR_FILES$[I%] + "\r\n"
+            CALL GetJarFile(I%)
+            'PRINT "Jar file: " + JAR_FILE$ + "\r\n"
         NEXT
     ENDIF
     'PRINT "Target class: " + TARGET_CLASS$ + "\r\n"
@@ -37,5 +38,4 @@ SUB Java ()
         END
     ENDIF
     GOTO ProcessLoop
-    'CALL InvokeStatic(TARGET_CLASS$, "main([Ljava/lang/String;)V", 0)
 END SUB

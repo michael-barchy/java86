@@ -11,7 +11,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     FSEEK(F%, POS&)
     CALL ReadU(F%, 1)
     OPCODE% = U1%
-    PRINT "OPCODE: " + OPCODE% + "\r\n"
+    'PRINT "OPCODE: " + PROCESS_ID% + ", " + Offset% + ", " + OPCODE% + "\r\n"
     IF OPCODE% >= %OPCODE_ICONST_0 THEN
         IF OPCODE% <= %OPCODE_ICONST_5 THEN
             VALUE% = OPCODE% - %OPCODE_ICONST_0
@@ -34,7 +34,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         INDEX% = U1% + 1
         CALL LocalGet(INDEX%)
         CALL StackPush(LocalValue%)
-        PRINT "ILOAD: " + INDEX% + ", " + LocalValue% + "\r\n"
+        'PRINT "ILOAD: " + INDEX% + ", " + LocalValue% + "\r\n"
         CODE_OFFSET% = Offset% + 2
     ENDIF
     IF OPCODE% >= %OPCODE_ALOAD_0 THEN
@@ -43,18 +43,27 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             Index% = Index% + 1
             CALL LocalGetString(Index%)
             CALL StackPushString(LocalValue$)
+            'PRINT "ALOAD: " + Index% + ", " + LocalValue$ + "\r\n"
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_BALOAD THEN
         CALL StackPop()
-        Index% = StackValue%
+        Index% = StackValue% + 1
         CALL StackPopString()
         C$ = MID(StackValue$, Index%, 1)
         C% = ASC(C$)
         Call StackPush(C%)
-        PRINT "BALOAD: " + Index% + ", " + StackValue$ + ", " + C$ + ", " + C% + "\r\n"
+        'PRINT "BALOAD: " + Index% + ", " + StackValue$ + ", " + C$ + ", " + C% + "\r\n"
         CODE_OFFSET% = Offset% + 1
+    ENDIF
+    IF OPCODE% = %OPCODE_ISTORE THEN
+        CALL ReadU(F%, 1)
+        Index% = U1% + 1
+        CALL StackPop()
+        CALL LocalSet(Index%, StackValue%)
+        'PRINT "ISTORE: " + Index% + ", " + StackValue% + "\r\n"
+        CODE_OFFSET% = Offset% + 2
     ENDIF
     IF OPCODE% >= %OPCODE_ASTORE_0 THEN
         IF OPCODE% <= %OPCODE_ASTORE_3 THEN
@@ -62,18 +71,20 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             Index% = Index% + 1
             CALL StackPopString()
             CALL LocalSetString(Index%, StackValue$)
+            'PRINT "ASTORE: " + Index% + ", " + StackValue$ + "\r\n"
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_IINC THEN
         CALL ReadU(F%, 1)
         Index% = U1% + 1
-        CALL ReadU(F%, 2)
-        Inc% = U2%
+        CALL ReadU(F%, 1)
+        Inc% = U1%
         Call LocalGet(Index%)
+        'PRINT "IINC: " + Index% + ", " + LocalValue% + ", " + Inc% + "\r\n"
         LocalValue% = LocalValue% + Inc%
         Call LocalSet(Index%, LocalValue%)
-        CODE_OFFSET% = Offset% + 4
+        CODE_OFFSET% = Offset% + 3
     ENDIF
     IF OPCODE% = %OPCODE_IFEQ THEN
         CALL ReadU(F%, 2)
@@ -87,19 +98,46 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = POS& - OLD_POS&
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_IFNE THEN
+        CALL ReadU(F%, 2)
+        CALL StackPop()
+        'PRINT "OPCODE_IFNE: " + StackValue% + " = 0 ?\r\n"
+        IF StackValue% <> 0 THEN
+            'PRINT "IFNE OFFSET: " + U2% + "\r\n"
+            CODE_OFFSET% = Offset% + U2%
+        ELSE
+            POS& = FPOS(F%)
+            CODE_OFFSET% = POS& - OLD_POS&
+        ENDIF
+    ENDIF
     IF OPCODE% = %OPCODE_IF_ICMPEQ THEN
         CALL ReadU(F%, 2)
         CALL StackPop()
-        STACK_POP1% = StackValue%
-        CALL StackPop()
         STACK_POP2% = StackValue%
-        PRINT "OPCODE_IF_ICMPEQ: " + STACK_POP1% + " = " + STACK_POP2% + " ?\r\n"
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        'PRINT "OPCODE_IF_ICMPEQ: " + STACK_POP1% + " = " + STACK_POP2% + " ?\r\n"
         IF STACK_POP1% = STACK_POP2% THEN
-            PRINT "IF_ICMPEQ OFFSET: " + U2% + "\r\n"
+            'PRINT "IF_ICMPEQ OFFSET: " + U2% + "\r\n"
             CODE_OFFSET% = Offset% + U2%
         ELSE
             POS& = FPOS(F%)
             CODE_OFFSET% = Offset% + 2
+        ENDIF
+    ENDIF
+    IF OPCODE% = %OPCODE_IF_ICMPLT THEN
+        CALL ReadU(F%, 2)
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        'PRINT "OPCODE_IF_ICMPLT: " + STACK_POP1% + " < " + STACK_POP2% + " ?\r\n"
+        IF STACK_POP1% < STACK_POP2% THEN
+            'PRINT "IF_ICMPLT OFFSET: " + U2% + "\r\n"
+            CODE_OFFSET% = Offset% + U2%
+        ELSE
+            POS& = FPOS(F%)
+            CODE_OFFSET% = Offset% + 3
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_IF_ACMPEQ THEN
@@ -123,8 +161,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             'PRINT "IF_ACMPEQ OFFSET: " + U2% + "\r\n"
             CODE_OFFSET% = Offset% + U2%
         ELSE
-            POS& = FPOS(F%)
-            CODE_OFFSET% = POS& - OLD_POS&
+            CODE_OFFSET% = Offset% + 3
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_IF_ACMPNE THEN
@@ -146,8 +183,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             'PRINT "IF_ACMPNE OFFSET: " + U2% + "\r\n"
             CODE_OFFSET% = Offset% + U2%
         ELSE
-            POS& = FPOS(F%)
-            CODE_OFFSET% = POS& - OLD_POS&
+            CODE_OFFSET% = Offset% + 3
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_GOTO THEN
@@ -159,16 +195,35 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL StackPop()
         'PRINT "IRETURN: " + StackValue% + "\r\n"
         ParentId% = PROCESS_PARENT%[PROCESS_ID%]
-        'PRINT PROCESS_ID% + " => " + ParentId% + "\r\n"
+        FCLOSE(F%)
         PROCESS_FILE%[PROCESS_ID%] = 0
         MFREE(PROCESS_STACK_PTR%[PROCESS_ID%])
         MFREE(PROCESS_LOCALS_PTR%[PROCESS_ID%])
+        '@todo - free string pointers
+        CODE_OFFSET% = Offset% + 1
+        PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
         IF ParentId% > 0 THEN
             PROCESS_ID% = ParentId%
             CALL StackPush(StackValue%)
             PROCESS_IDLE%[PROCESS_ID%] = 0
         ENDIF
-        CODE_OFFSET% = Offset%
+        EXIT SUB
+    ENDIF
+    IF OPCODE% = %OPCODE_RETURN THEN
+        ParentId% = PROCESS_PARENT%[PROCESS_ID%]
+        FCLOSE(F%)
+        PROCESS_FILE%[PROCESS_ID%] = 0
+        MFREE(PROCESS_STACK_PTR%[PROCESS_ID%])
+        MFREE(PROCESS_LOCALS_PTR%[PROCESS_ID%])
+        '@todo - free string pointers
+        CODE_OFFSET% = Offset% + 1
+        PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
+        'PRINT "RETURN: " + PROCESS_ID% + ", " + ParentId% + "\r\n"
+        IF ParentId% > 0 THEN
+            PROCESS_ID% = ParentId%
+            PROCESS_IDLE%[PROCESS_ID%] = 0
+        ENDIF
+        EXIT SUB
     ENDIF
     IF OPCODE% = %OPCODE_INVOKE_STATIC THEN
         CALL ReadU(F%, 2)
@@ -188,16 +243,16 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         IF ClassName$ <> "Native" THEN
             '@todo - invoke other class method (non-native)
             Call StackPopString()
-            STACK_POP1$ = StackValue$
-            STACK_POP1% = StackValue%
+            STACK_POP2$ = StackValue$
+            STACK_POP2% = StackValue%
             Call StackPopString()
             STACK_POP1$ = StackValue$
             STACK_POP1% = StackValue%
             PROCESS_IDLE%[PROCESS_ID%] = 1
-            POS& = FPOS(F%)
-            CODE_OFFSET% = POS& - OLD_POS&
+            CODE_OFFSET% = Offset% + 3
             PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
             ParentId% = PROCESS_ID%
+            'PRINT "InvokeStatic: " + PROCESS_ID% + ", " + ClassName$ + "." + MethodRef$ + "(" + STACK_POP1$ + ", " + STACK_POP2$ + ")\r\n"
             CALL NewProcess(ClassName$, MethodRef$, ParentId%)
             CALL LocalSetString(1, STACK_POP1$)
             CALL LocalSetString(2, STACK_POP2$)
@@ -205,28 +260,24 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = PROCESS_CODE_OFFSET%[PROCESS_ID%]
         ELSE
             MethodRef$ = ClassName$ + "." + MethodRef$
-            PRINT MethodRef$ + "\r\n"
+            'PRINT MethodRef$ + "\r\n"
         ENDIF
         IF MethodRef$ = "Native.print(Ljava/lang/String;)V" THEN
             CALL StackPopString()
             PRINT StackValue$
-            POS& = FPOS(F%)
-            CODE_OFFSET% = POS& - OLD_POS&
+            CODE_OFFSET% = Offset% + 3
         ENDIF
         IF MethodRef$ = "Native.input()Ljava/lang/String;" THEN
             INPUT STACK_PUSH$
             CALL StackPushString(STACK_PUSH$)
-            POS& = FPOS(F%)
-            CODE_OFFSET% = POS& - OLD_POS&
+            CODE_OFFSET% = Offset% + 3
         ENDIF
         IF MethodRef$ = "Native.getBytes(Ljava/lang/String;)[B" THEN
             CALL StackPopString()
             BYTES$ = StackValue$
-            PRINT "getBytes: " + BYTES$ + "\r\n"
-            CALL StackPush(0)
+            'PRINT "getBytes: ***" + BYTES$ + "***\r\n"
             CALL StackPushString(BYTES$)
-            POS& = FPOS(F%)
-            CODE_OFFSET% = POS& - OLD_POS&
+            CODE_OFFSET% = Offset% + 3
         ENDIF
         IF CODE_OFFSET% = -1 THEN
            'PRINT "INVOKE_STATIC: " + METHOD_REF% + ", " + MethodRef$ + "\r\n"
@@ -236,13 +287,12 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     IF OPCODE% = %OPCODE_ARRAYLENGTH THEN
         CALL StackPop()
         ArrayLen% = MGET(StackValue%)
-        PRINT "ArrayLength: " + ArrayLen% + "\r\n"
+        'PRINT "ArrayLength: " + ArrayLen% + "\r\n"
         CALL StackPush(ArrayLen%)
-        POS& = FPOS(F%)
-        CODE_OFFSET% = POS& - OLD_POS&
+        CODE_OFFSET% = Offset% + 1
     ENDIF
     IF CODE_OFFSET% = -1 THEN
-        PRINT "OPCODE: " + OPCODE% + "\r\n"
+        PRINT "UNSUPPORTED OPCODE: " + OPCODE% + "\r\n"
         END
     ENDIF
     FSEEK(F%, OLD_POS&)

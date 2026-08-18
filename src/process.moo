@@ -12,33 +12,35 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
     ENDIF
     TargetFile$ = ClassName$ + ".class" '@todo - replace '.' with '/'
     'PRINT "Target file: " + TargetFile$ + "\r\n"
-    FOR i% = 1 TO JAR_COUNT%
-        'PRINT "Looking into " + JAR_FILES$[i%] + "\r\n"
-        CALL ZipFind(i%, TargetFile$)
+    FOR JarIdx% = 1 TO JAR_COUNT%
+        CALL GetJarFile(JarIdx%)
+        'PRINT "Looking into " + JAR_FILE$ + "\r\n"
+        CALL ZipFind(JarIdx%, TargetFile$)
         IF JAR_RESULT% > 0 THEN
             'PRINT "Jar found: " + JAR_RESULT% + "\r\n"
-            CALL ZipFind(i%, TargetFile$)
-            JarIdx% = JAR_CACHE_IDX%[JAR_RESULT%]
+            'CALL ZipFind(JarIdx%, TargetFile$)
+            'JarIdx% = JAR_CACHE_IDX%[JAR_RESULT%]
             'JarIdx% = i%
             'PRINT "Jar ID: " + JarIdx% + "\r\n"
             'PRINT "Jar found (cache): " + JAR_RESULT% + "\r\n"
             JarIdx% = JAR_CACHE_IDX%[JAR_RESULT%]
             'JarIdx% = i%
             'PRINT "Jar ID (cache): " + JarIdx% + "\r\n"
-            JarFile$ = JAR_FILES$[JarIdx%]
-            'PRINT "Jar FILE: " + JarFile$ + "\r\n"
+            CALL GetJarFile(JarIdx%)
+            'PRINT "Jar FILE: " + JAR_FILE$ + "\r\n"
             Pos& = JAR_CACHE_POS&[JAR_RESULT%]
             'PRINT "Jar POS: " + Pos& + "\r\n"
-            F% = FOPEN(JarFile$)
+            'PRINT "Free memory: " + freemem(0) + "\r\n"
+            F% = FOPEN(JAR_FILE$)
             FSEEK(F%, Pos&)
             CALL ParseClass(F%)
             CALL ReadConstantPool(F%, JAR_RESULT%)
             'PRINT "CP_PTR: " + CP_CACHE%[JAR_RESULT%] + "\r\n"
             'PRINT "CP_COUNT: " + CP_COUNT% + "\r\n"
-            Pos& = JAR_CACHE_POS&[JAR_RESULT%]
-            FSEEK(F%, Pos&)
-            CALL ParseClass(F%)
-            CALL ReadConstantPool(F%, JAR_RESULT%)
+            'Pos& = JAR_CACHE_POS&[JAR_RESULT%]
+            'FSEEK(F%, Pos&)
+            'CALL ParseClass(F%)
+            'CALL ReadConstantPool(F%, JAR_RESULT%)
             'PRINT "CP_PTR (cache): " + CP_CACHE%[JAR_RESULT%] + "\r\n"
             'PRINT "CP_COUNT (cache): " + CP_COUNT% + "\r\n"
             CALL ReadU(F%, 2) 'Ignore access flags
@@ -64,13 +66,11 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
             PROCESS_PARENT%[PID%] = ParentId%
             STACK_PTR_SIZE% = %MAX_STACK * 2
             STACK_PTR_SIZE% = STACK_PTR_SIZE% + 2
-            STACK_PTR% = MALLOC(STACK_PTR_SIZE%)
-            PROCESS_STACK_PTR%[PID%] = STACK_PTR%
-            MEMSETW(0, STACK_PTR%, 1)
+            PROCESS_STACK_PTR%[PID%] = MALLOC(STACK_PTR_SIZE%)
+            MEMSETW(0, PROCESS_STACK_PTR%[PID%], 1)
             LOCALS_PTR_SIZE% = %MAX_LOCALS * 2
-            LOCALS_PTR% = MALLOC(LOCALS_PTR_SIZE%)
-            PROCESS_LOCALS_PTR%[PID%] = LOCALS_PTR%
-            MEMSETW(0, LOCALS_PTR%, 1)
+            PROCESS_LOCALS_PTR%[PID%] = MALLOC(LOCALS_PTR_SIZE%)
+            MEMSETW(0, PROCESS_LOCALS_PTR%[PID%], 1)
             PROCESS_ID% = PID%
             EXIT SUB
         ENDIF

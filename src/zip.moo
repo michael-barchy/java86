@@ -22,7 +22,8 @@ SUB ZipFind (JarIndex%, ClassName$)
         ENDIF
     NEXT
 
-    CurrentJar$ = JAR_FILES$[JarIndex%]
+    CALL GetJarFile(JarIndex%)
+    CurrentJar$ = JAR_FILE$
     F% = FOPEN(CurrentJar$)
 
     WHILE FEOF(F%) = FALSE

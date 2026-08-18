@@ -4,12 +4,14 @@ SUB ReadConstantPool(FileHandle%, CP_IDX%)
 
     PTR% = CP_CACHE%[CP_IDX%]
     IF PTR% > 0 THEN
+        'PRINT "ConstantPool from cache: " + PTR% + "\r\n"
         POS& = CP_POS&[CP_IDX%]
         FSEEK(FileHandle%, POS&)
         EXIT SUB
     ENDIF
 
     CP_LEN% = CP_COUNT% * %CP_ENTRY_SIZE
+    'PRINT "CP_LEN: " + CP_LEN% + "\r\n"
     PTR%  = MALLOC(CP_LEN%)
     CP_CACHE%[CP_IDX%] = PTR%
     JarPos& = JAR_CACHE_POS&[CP_IDX%]
@@ -186,9 +188,12 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
         FSEEK(FileHandle%, CP_OFFSET&)
         CALL ReadU(FileHandle%, 2)
         CPLen% = U2%
-        'PRINT "CP LEN: " + CPLen% + "\r\n"
-        CPValue$ = SPACE(CPLen%)
-        CPValue$ = FGET(FileHandle%)
+        CPValue$ = ""
+        IF CPLen% > 0 THEN
+            'PRINT "CP LEN: " + CPLen% + "\r\n"
+            CPValue$ = SPACE(CPLen%)
+            CPValue$ = FGET(FileHandle%)
+        ENDIF
         'PRINT "CP VALUE: " + CPValue$ + "\r\n"
         FSEEK(FileHandle%, Offset&)
         CP_ENTRY$ = CPValue$
