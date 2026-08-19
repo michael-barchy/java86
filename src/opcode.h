@@ -32,6 +32,12 @@
 %MAX_STACK = 10
 %MAX_LOCALS = 10
 
+%STACK_ENTRY_SIZE = 3
+%LOCALS_ENTRY_SIZE = 3
+
+%TYPE_INT = 0
+%TYPE_REF = 1
+
 DIM CODE_OFFSET%
 
 DIM StackValue%
@@ -40,11 +46,11 @@ DIM LocalValue%
 DIM LocalValue$
 
 SUB RunCode(F%, MethodIdx%, Offset%)
-SUB StackPush(Value%)
+SUB StackPush(Value%, Type@)
 SUB StackPushString(Value$)
 SUB StackPop()
 SUB StackPopString()
-SUB LocalSet(Index%, Value%)
+SUB LocalSet(Index%, Value%, Type@)
 SUB LocalSetString(Index%, Value$)
 SUB LocalGet(Index%)
 SUB LocalGetString(Index%)

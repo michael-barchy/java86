@@ -64,15 +64,67 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
             PROCESS_CODE_OFFSET%[PID%] = 0
             PROCESS_CODE_END%[PID%] = CODE_END%
             PROCESS_PARENT%[PID%] = ParentId%
-            STACK_PTR_SIZE% = %MAX_STACK * 2
-            STACK_PTR_SIZE% = STACK_PTR_SIZE% + 2
+            STACK_PTR_SIZE% = %MAX_STACK * %STACK_ENTRY_SIZE
+            STACK_PTR_SIZE% = STACK_PTR_SIZE% + 2 'First word = Stack size
             PROCESS_STACK_PTR%[PID%] = MALLOC(STACK_PTR_SIZE%)
             MEMSETW(0, PROCESS_STACK_PTR%[PID%], 1)
-            LOCALS_PTR_SIZE% = %MAX_LOCALS * 2
+            LOCALS_PTR_SIZE% = %MAX_LOCALS * %LOCALS_ENTRY_SIZE
             PROCESS_LOCALS_PTR%[PID%] = MALLOC(LOCALS_PTR_SIZE%)
-            MEMSETW(0, PROCESS_LOCALS_PTR%[PID%], 1)
+            MEMSETB(0, PROCESS_LOCALS_PTR%[PID%], LOCALS_PTR_SIZE%)
             PROCESS_ID% = PID%
             EXIT SUB
         ENDIF
     NEXT
+END SUB
+
+SUB KillProcess()
+    PROCESS_FILE%[PROCESS_ID%] = 0
+
+    'Free stack strings
+    STACK_PTR% = PROCESS_STACK_PTR%[PROCESS_ID%]
+    STACK_SIZE% = MGET(STACK_PTR%)
+    IF STACK_SIZE% > 0 THEN
+        FOR I% = 1 TO STACK_SIZE%
+            STACK_OFFSET% = I% - 1
+            STACK_OFFSET% = STACK_OFFSET% * %STACK_ENTRY_SIZE
+            STACK_OFFSET% = STACK_OFFSET% + STACK_PTR%
+            STACK_OFFSET% = STACK_OFFSET% + 2 'First word = Stack size
+            STACK_TYPE$ = SPACE(1)
+            STACK_TYPE$ = MGET(STACK_OFFSET%)
+            STACK_TYPE% = ASC(STACK_TYPE$)
+            IF STACK_TYPE% = %TYPE_REF THEN
+                MEMSETB(%TYPE_INT, STACK_OFFSET%, 1)
+                STACK_OFFSET% = STACK_OFFSET% + 1
+                STACK_REF% = MGET(STACK_OFFSET%)
+                MEMSETW(0, STACK_OFFSET%, 1)
+                IF STACK_REF% > 0 THEN
+                    'PRINT "Free stack ref: " + STACK_REF% + "\r\n"
+                    MFREE(STACK_REF%)
+                ENDIF
+            ENDIF
+        NEXT
+    ENDIF
+    MFREE(STACK_PTR%)
+
+    'Free locals strings
+    LOCALS_PTR% = PROCESS_LOCALS_PTR%[PROCESS_ID%]
+    FOR I% = 1 TO %MAX_LOCALS
+        LOCALS_OFFSET% = I%  - 1
+        LOCALS_OFFSET% = LOCALS_OFFSET% * %LOCALS_ENTRY_SIZE
+        LOCALS_OFFSET% = LOCALS_OFFSET% + LOCALS_PTR%
+        LOCALS_TYPE$ = SPACE(1)
+        LOCALS_TYPE$ = MGET(LOCALS_OFFSET%)
+        LOCALS_TYPE% = ASC(LOCALS_TYPE$)
+        IF LOCALS_TYPE% = %TYPE_REF THEN
+            MEMSETB(%TYPE_INT, LOCALS_OFFSET%, 1)
+            LOCALS_OFFSET% = LOCALS_OFFSET% + 1
+            LOCALS_REF% = MGET(LOCALS_OFFSET%)
+            MEMSETW(0, LOCALS_OFFSET%, 1)
+            IF LOCALS_REF% > 0 THEN
+                'PRINT "Free locals ref: " + LOCALS_REF% + "\r\n"
+                MFREE(LOCALS_REF%)
+            ENDIF
+        ENDIF
+    NEXT
+    MFREE(LOCALS_PTR%)
 END SUB

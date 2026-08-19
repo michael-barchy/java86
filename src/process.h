@@ -12,3 +12,4 @@ DIM PROCESS_IDLE%[%MAX_PROCESS]
 DIM PROCESS_ID% = 0
 
 SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
+SUB KillProcess()

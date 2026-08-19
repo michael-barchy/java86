@@ -15,7 +15,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     IF OPCODE% >= %OPCODE_ICONST_0 THEN
         IF OPCODE% <= %OPCODE_ICONST_5 THEN
             VALUE% = OPCODE% - %OPCODE_ICONST_0
-            CALL StackPush(VALUE%)
+            CALL StackPush(VALUE%, %TYPE_INT)
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
@@ -31,16 +31,15 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     ENDIF
     IF OPCODE% = %OPCODE_ILOAD THEN
         CALL ReadU(F%, 1)
-        INDEX% = U1% + 1
+        INDEX% = U1%
         CALL LocalGet(INDEX%)
-        CALL StackPush(LocalValue%)
+        CALL StackPush(LocalValue%, %TYPE_INT)
         'PRINT "ILOAD: " + INDEX% + ", " + LocalValue% + "\r\n"
         CODE_OFFSET% = Offset% + 2
     ENDIF
     IF OPCODE% >= %OPCODE_ALOAD_0 THEN
         IF OPCODE% <= %OPCODE_ALOAD_3 THEN
             Index% = OPCODE% - %OPCODE_ALOAD_0
-            Index% = Index% + 1
             CALL LocalGetString(Index%)
             CALL StackPushString(LocalValue$)
             'PRINT "ALOAD: " + Index% + ", " + LocalValue$ + "\r\n"
@@ -53,22 +52,21 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL StackPopString()
         C$ = MID(StackValue$, Index%, 1)
         C% = ASC(C$)
-        Call StackPush(C%)
+        CALL StackPush(C%, %TYPE_INT)
         'PRINT "BALOAD: " + Index% + ", " + StackValue$ + ", " + C$ + ", " + C% + "\r\n"
         CODE_OFFSET% = Offset% + 1
     ENDIF
     IF OPCODE% = %OPCODE_ISTORE THEN
         CALL ReadU(F%, 1)
-        Index% = U1% + 1
+        Index% = U1%
         CALL StackPop()
-        CALL LocalSet(Index%, StackValue%)
+        CALL LocalSet(Index%, StackValue%, %TYPE_INT)
         'PRINT "ISTORE: " + Index% + ", " + StackValue% + "\r\n"
         CODE_OFFSET% = Offset% + 2
     ENDIF
     IF OPCODE% >= %OPCODE_ASTORE_0 THEN
         IF OPCODE% <= %OPCODE_ASTORE_3 THEN
             Index% = OPCODE% - %OPCODE_ASTORE_0
-            Index% = Index% + 1
             CALL StackPopString()
             CALL LocalSetString(Index%, StackValue$)
             'PRINT "ASTORE: " + Index% + ", " + StackValue$ + "\r\n"
@@ -77,13 +75,13 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     ENDIF
     IF OPCODE% = %OPCODE_IINC THEN
         CALL ReadU(F%, 1)
-        Index% = U1% + 1
+        Index% = U1%
         CALL ReadU(F%, 1)
         Inc% = U1%
-        Call LocalGet(Index%)
+        CALL LocalGet(Index%)
         'PRINT "IINC: " + Index% + ", " + LocalValue% + ", " + Inc% + "\r\n"
         LocalValue% = LocalValue% + Inc%
-        Call LocalSet(Index%, LocalValue%)
+        CALL LocalSet(Index%, LocalValue%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 3
     ENDIF
     IF OPCODE% = %OPCODE_IFEQ THEN
@@ -196,15 +194,12 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         'PRINT "IRETURN: " + StackValue% + "\r\n"
         ParentId% = PROCESS_PARENT%[PROCESS_ID%]
         FCLOSE(F%)
-        PROCESS_FILE%[PROCESS_ID%] = 0
-        MFREE(PROCESS_STACK_PTR%[PROCESS_ID%])
-        MFREE(PROCESS_LOCALS_PTR%[PROCESS_ID%])
-        '@todo - free string pointers
+        CALL KillProcess()
         CODE_OFFSET% = Offset% + 1
         PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
         IF ParentId% > 0 THEN
             PROCESS_ID% = ParentId%
-            CALL StackPush(StackValue%)
+            CALL StackPush(StackValue%, %TYPE_INT)
             PROCESS_IDLE%[PROCESS_ID%] = 0
         ENDIF
         EXIT SUB
@@ -212,10 +207,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     IF OPCODE% = %OPCODE_RETURN THEN
         ParentId% = PROCESS_PARENT%[PROCESS_ID%]
         FCLOSE(F%)
-        PROCESS_FILE%[PROCESS_ID%] = 0
-        MFREE(PROCESS_STACK_PTR%[PROCESS_ID%])
-        MFREE(PROCESS_LOCALS_PTR%[PROCESS_ID%])
-        '@todo - free string pointers
+        CALL KillProcess()
         CODE_OFFSET% = Offset% + 1
         PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
         'PRINT "RETURN: " + PROCESS_ID% + ", " + ParentId% + "\r\n"
@@ -254,8 +246,8 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             ParentId% = PROCESS_ID%
             'PRINT "InvokeStatic: " + PROCESS_ID% + ", " + ClassName$ + "." + MethodRef$ + "(" + STACK_POP1$ + ", " + STACK_POP2$ + ")\r\n"
             CALL NewProcess(ClassName$, MethodRef$, ParentId%)
-            CALL LocalSetString(1, STACK_POP1$)
-            CALL LocalSetString(2, STACK_POP2$)
+            CALL LocalSetString(0, STACK_POP1$)
+            CALL LocalSetString(1, STACK_POP2$)
             PROCESS_ID% = ParentId%
             CODE_OFFSET% = PROCESS_CODE_OFFSET%[PROCESS_ID%]
         ELSE
@@ -265,6 +257,11 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         IF MethodRef$ = "Native.print(Ljava/lang/String;)V" THEN
             CALL StackPopString()
             PRINT StackValue$
+            POS% = INSTR(StackValue$, "\r\n")
+            LEN% = LEN(StackValue$) - 2
+            IF POS% = LEN% THEN
+                'PRINT "Free memory: " + FREEMEM(0) + "\r\n"
+            ENDIF
             CODE_OFFSET% = Offset% + 3
         ENDIF
         IF MethodRef$ = "Native.input()Ljava/lang/String;" THEN
@@ -285,10 +282,10 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_ARRAYLENGTH THEN
-        CALL StackPop()
-        ArrayLen% = MGET(StackValue%)
+        CALL StackPopString()
+        ArrayLen% = LEN(StackValue%)
         'PRINT "ArrayLength: " + ArrayLen% + "\r\n"
-        CALL StackPush(ArrayLen%)
+        CALL StackPush(ArrayLen%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 1
     ENDIF
     IF CODE_OFFSET% = -1 THEN
@@ -298,12 +295,14 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     FSEEK(F%, OLD_POS&)
 END SUB
 
-SUB StackPush(Value%)
+SUB StackPush(Value%, Type@)
     STACK_PTR% = PROCESS_STACK_PTR%[PROCESS_ID%]
     STACK_SIZE% = MGET(STACK_PTR%)
-    STACK_OFFSET% = STACK_SIZE% + 1
-    STACK_OFFSET% = STACK_OFFSET% * 2
+    STACK_OFFSET% = STACK_SIZE% * %STACK_ENTRY_SIZE
     STACK_OFFSET% = STACK_OFFSET% + STACK_PTR%
+    STACK_OFFSET% = STACK_OFFSET% + 2 'First word = Stack size
+    MEMSETB(Type@, STACK_OFFSET%, 1)
+    STACK_OFFSET% = STACK_OFFSET% + 1
     MEMSETW(Value%, STACK_OFFSET%, 1)
     STACK_SIZE% = STACK_SIZE% + 1
     MEMSETW(STACK_SIZE%, STACK_PTR%, 1)
@@ -315,18 +314,20 @@ SUB StackPushString(Value$)
     STR_LEN% = STR_LEN% + 2
     STR_PTR% = MALLOC(STR_LEN%)
     MEMCOPY(STRPTR(Value$), STR_PTR%, STR_LEN%)
-    'PRINT "StackPushString: " + Value$ + ", " + STR_PTR% + ", " + STR_LEN% + "\r\n"
-    CALL StackPush(STR_PTR%)
+    'PRINT "StackPushString: ***" + Value$ + "***, " + STR_PTR% + ", " + STR_LEN% + "\r\n"
+    CALL StackPush(STR_PTR%, %TYPE_REF)
 END SUB
 
 SUB StackPop()
     STACK_PTR% = PROCESS_STACK_PTR%[PROCESS_ID%]
     STACK_SIZE% = MGET(STACK_PTR%)
-    STACK_OFFSET% = STACK_SIZE% * 2
+    STACK_SIZE% = STACK_SIZE% - 1
+    STACK_OFFSET% = STACK_SIZE% * %STACK_ENTRY_SIZE
     STACK_OFFSET% = STACK_OFFSET% + STACK_PTR%
+    STACK_OFFSET% = STACK_OFFSET% + 2 'First word = Stack size
+    STACK_OFFSET% = STACK_OFFSET% + 1 'Ignore type
     StackValue% = MGET(STACK_OFFSET%)
     StackValue$ = STR(StackValue%)
-    STACK_SIZE% = STACK_SIZE% - 1
     MEMSETW(STACK_SIZE%, STACK_PTR%, 1)
     'PRINT "StackPop: " + STACK_PTR% + ", " + STACK_SIZE% + ", " + STACK_OFFSET% + ", " + StackValue% + "\r\n"
 END SUB
@@ -338,14 +339,30 @@ SUB StackPopString()
     StackValue$ = SPACE(STR_LEN%)
     STR_LEN% = STR_LEN% + 2
     MEMCOPY(STR_PTR%, STRPTR(StackValue$), STR_LEN%)
-    'PRINT "StackPopString: " + STR_PTR% + ", " + STR_LEN% + ", " + StackValue% + "\r\n"
+    MFREE(STR_PTR%)
+    'PRINT "StackPopString: ***" + STR_PTR% + "***, " + STR_LEN% + ", " + StackValue% + "\r\n"
 END SUB
 
-SUB LocalSet(Index%, Value%)
+SUB LocalSet(Index%, Value%, Type@)
     LOCALS_PTR% = PROCESS_LOCALS_PTR%[PROCESS_ID%]
-    LOCALS_OFFSET% = Index% * 2
+    LOCALS_OFFSET% = Index% * %LOCALS_ENTRY_SIZE
+    LOCALS_OFFSET% = LOCALS_OFFSET% + LOCALS_PTR%
+    LOCALS_TYPE$ = SPACE(1)
+    LOCALS_TYPE$ = MGET(LOCALS_OFFSET%)
+    LOCALS_TYPE% = ASC(LOCALS_TYPE$)
+    IF LOCALS_TYPE% = %TYPE_REF THEN
+        LOCALS_OFFSET% = LOCALS_OFFSET% + 1
+        STR_PTR% = MGET(LOCALS_OFFSET%)
+        IF STR_PTR% > 0 THEN
+            'PRINT "Free locals: " + LOCALS_TYPE% + ", " + STR_PTR% + "\r\n"
+            MFREE(STR_PTR%)
+        ENDIF
+        LOCALS_OFFSET% = LOCALS_OFFSET% - 1
+    ENDIF
+    MEMSETB(Type@, LOCALS_OFFSET%, 1)
+    LOCALS_OFFSET% = LOCALS_OFFSET% + 1
     MEMSETW(Value%, LOCALS_OFFSET%, 1)
-    'PRINT "LocalSet:" + Index% + ", " + Value% + ", " + LOCALS_PTR% + ", " + LOCALS_OFFSET% + "\r\n"
+    'PRINT "LocalSet: " + Index% + ", " + Value% + ", " + LOCALS_PTR% + ", " + LOCALS_OFFSET% + "\r\n"
 END SUB
 
 SUB LocalSetString(Index%, Value$)
@@ -353,15 +370,17 @@ SUB LocalSetString(Index%, Value$)
     STR_LEN% = STR_LEN% + 2
     STR_PTR% = MALLOC(STR_LEN%)
     MEMCOPY(STRPTR(Value$), STR_PTR%, STR_LEN%)
-    'PRINT "LocalSetString:" + Index% + ", " + Value$ + ", " + STR_LEN% + ", " + STR_PTR% + "\r\n"
-    CALL LocalSet(Index%, STR_PTR%)
+    'PRINT "LocalSetString: " + Index% + ", ***" + Value$ + "***, " + STR_LEN% + ", " + STR_PTR% + "\r\n"
+    CALL LocalSet(Index%, STR_PTR%, %TYPE_REF)
 END SUB
 
 SUB LocalGet(Index%)
     LOCALS_PTR% = PROCESS_LOCALS_PTR%[PROCESS_ID%]
-    LOCALS_OFFSET% = Index% * 2
+    LOCALS_OFFSET% = Index% * %LOCALS_ENTRY_SIZE
+    LOCALS_OFFSET% = LOCALS_OFFSET% + LOCALS_PTR%
+    LOCALS_OFFSET% = LOCALS_OFFSET% + 1 'Ignore type
     LocalValue% = MGET(LOCALS_OFFSET%)
-    'PRINT "LocalGet:" + Index% + ", " + LOCALS_PTR% + ", " + LOCALS_OFFSET% + ", " + LocalValue% + "\r\n"
+    'PRINT "LocalGet: " + Index% + ", " + LOCALS_PTR% + ", " + LOCALS_OFFSET% + ", " + LocalValue% + "\r\n"
 END SUB
 
 SUB LocalGetString(Index%)
@@ -371,5 +390,5 @@ SUB LocalGetString(Index%)
     LocalValue$ = SPACE(STR_LEN%)
     STR_LEN% = STR_LEN% + 2
     MEMCOPY(STR_PTR%, STRPTR(LocalValue$), STR_LEN%)
-    'PRINT "LocalGetString:" + Index% + ", " + STR_PTR% + ", " + STR_LEN% + ", " + LocalValue$ + "\r\n"
+    'PRINT "LocalGetString: " + Index% + ", " + STR_PTR% + ", " + STR_LEN% + ", ***" + LocalValue$ + "***\r\n"
 END SUB
