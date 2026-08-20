@@ -1,24 +1,66 @@
-SUB ReadConstantPool(FileHandle%, CP_IDX%)
+SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
+    CALL CalcCRC16(ClassName$)
+    TargetCRC16% = CalculatedCRC16%
+    FOR I% = 1 TO %MAX_CP_CACHE
+        IF CP_CACHE%[I%] > 0 THEN
+            IF CP_CRC%[I%] = TargetCRC16% THEN
+                CP_IDX% = I%
+                POS& = CP_POS&[CP_IDX%]
+                FSEEK(FileHandle%, POS&)
+                EXIT SUB
+            ENDIF
+        ENDIF
+    NEXT
+
+    CP_IDX% = 0
+
+    FOR I% = 1 TO %MAX_CP_CACHE
+        IF CP_CACHE%[I%] = 0 THEN
+            CP_IDX% = I%
+            EXIT FOR
+        ENDIF
+    NEXT
+
+    IF CP_IDX% = 0 THEN
+        FOR I% = 1 TO %MAX_CP_CACHE
+            FOUND% = 0
+            FOR P% = 1 TO %MAX_PROCESS
+                IF PROCESS_CPOOL%[P%] = I% THEN
+                    FOUND% = 1
+                    EXIT FOR
+                ENDIF
+            NEXT
+            IF FOUND% = 0 THEN
+                CP_IDX% = I%
+                PTR% = CP_CACHE%[CP_IDX%]
+                IF PTR% > 0 THEN
+                    MFREE(PTR%)
+                ENDIF
+                EXIT FOR
+            ENDIF
+        NEXT
+    ENDIF
+
+    IF CP_IDX% = 0 THEN
+        CP_IDX% = 1
+        PTR% = CP_CACHE%[CP_IDX%]
+        IF PTR% > 0 THEN
+            MFREE(PTR%)
+        ENDIF
+    ENDIF
+
     CALL ReadU(FileHandle%, 2)
     CP_COUNT% = U2% - 1
 
-    PTR% = CP_CACHE%[CP_IDX%]
-    IF PTR% > 0 THEN
-        'PRINT "ConstantPool from cache: " + PTR% + "\r\n"
-        POS& = CP_POS&[CP_IDX%]
-        FSEEK(FileHandle%, POS&)
-        EXIT SUB
-    ENDIF
-
     CP_LEN% = CP_COUNT% * %CP_ENTRY_SIZE
-    'PRINT "CP_LEN: " + CP_LEN% + "\r\n"
     PTR%  = MALLOC(CP_LEN%)
     CP_CACHE%[CP_IDX%] = PTR%
-    JarPos& = JAR_CACHE_POS&[CP_IDX%]
+    CP_CRC%[CP_IDX%] = TargetCRC16%
+    CP_JAR%[CP_IDX%] = JarIdx%
+    JarPos& = JAR_CACHE_POS&[JarIdx%]
 
     FOR I% = 1 TO CP_COUNT%
         TAG@ = FGET(FileHandle%)
-        'PRINT "Tag: " + TAG@ + ", PTR: " + PTR% + "\r\n"
 
         MEMSETB(TAG@, PTR%, 1)
         PTR% = PTR% + 1
@@ -146,6 +188,7 @@ SUB ReadConstantPool(FileHandle%, CP_IDX%)
 END SUB
 
 SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
+    JarIdx% = CP_JAR%[CP_IDX%]
     CP_PTR% = CP_CACHE%[CP_IDX%]
     CP_OFFSET% = EntryIdx% - 1
     CP_OFFSET% = CP_OFFSET% * %CP_ENTRY_SIZE
@@ -157,12 +200,10 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
     CP_ENTRY2% = 0
     CP_ENTRY$ = ""
 
-    'PRINT "CP TAG: " + CP_TAG% + "\r\n"
     IF CP_TAG% = %CP_String THEN
         Offset& = FPOS(FileHandle%)
         CP_PTR% = CP_PTR% + 1
         STRING_INDEX% = MGET(CP_PTR%)
-        'PRINT "STRING_INDEX: " + STRING_INDEX% + "\r\n"
         FSEEK(FileHandle%, Offset&)
         CP_ENTRY% = STRING_INDEX%
         EXIT SUB
@@ -172,7 +213,6 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
         Offset& = FPOS(FileHandle%)
         CP_PTR% = CP_PTR% + 1
         STRING_INDEX% = MGET(CP_PTR%)
-        'PRINT "STRING_INDEX: " + STRING_INDEX% + "\r\n"
         FSEEK(FileHandle%, Offset&)
         CP_ENTRY% = STRING_INDEX%
         EXIT SUB
@@ -182,19 +222,16 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
         Offset& = FPOS(FileHandle%)
         CP_PTR% = CP_PTR% + 1
         CP_OFFSET% = MGET(CP_PTR%)
-        CP_OFFSET& = JAR_CACHE_POS&[CP_IDX%]
+        CP_OFFSET& = JAR_CACHE_POS&[JarIdx%]
         CP_OFFSET& = CP_OFFSET& + CP_OFFSET%
-        'PRINT "CP OFFSET: " + CP_OFFSET% + ", " + CP_OFFSET& + "\r\n"
         FSEEK(FileHandle%, CP_OFFSET&)
         CALL ReadU(FileHandle%, 2)
         CPLen% = U2%
         CPValue$ = ""
         IF CPLen% > 0 THEN
-            'PRINT "CP LEN: " + CPLen% + "\r\n"
             CPValue$ = SPACE(CPLen%)
             CPValue$ = FGET(FileHandle%)
         ENDIF
-        'PRINT "CP VALUE: " + CPValue$ + "\r\n"
         FSEEK(FileHandle%, Offset&)
         CP_ENTRY$ = CPValue$
         EXIT SUB

@@ -7,4 +7,4 @@ DIM METHOD_CACHE_LEN%[%MAX_METHOD_CACHE]
 DIM METHOD_CACHE_COUNT%
 DIM METHOD_CACHE_IDX%
 
-SUB SearchMethodCode(FileHandle%, JarIdx%,MethodSignature$)
+SUB SearchMethodCode(FileHandle%, JarIdx%, ClassName$, MethodSignature$)

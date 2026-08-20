@@ -16,7 +16,6 @@ SUB ParseCmd ()
             StrLen% = LEN(JarFile$)
             StrLen% = StrLen% + 2
             STR_PTR% = MALLOC(StrLen%)
-            'PRINT JarFile$ + ", " + StrLen% + + ", " + STR_PTR% + "\r\n"
             JAR_FILES%[JAR_COUNT%] = STR_PTR%
             MEMCOPY(STRPTR(JarFile$), STR_PTR%, StrLen%)
             i% = i% + 2
@@ -37,5 +36,4 @@ SUB GetJarFile(JarIdx%)
     JAR_FILE$ = SPACE(StrLen%)
     StrLen% = StrLen% + 2
     MEMCOPY(STR_PTR%, STRPTR(JAR_FILE$), StrLen%)
-    'PRINT JAR_FILE$ + ", " + STR_PTR% + ", " + StrLen% + "\r\n"
 END SUB

@@ -1,9 +1,8 @@
-SUB SearchMethodCode(FileHandle%, JarIdx%, MethodSignature$)
-    'PRINT "Current Jar File Index: " + FileHandle% + ", " + JarIdx% + ", " + MethodSignature$ + "\r\n"
-
+SUB SearchMethodCode(FileHandle%, JarIdx%, ClassName$, MethodSignature$)
     METHOD_CACHE_IDX%  = 0
 
-    CALL CalcCRC16 (MethodSignature$)
+    CacheSignature$ = ClassName$ + MethodSignature$
+    CALL CalcCRC16 (CacheSignature$)
     TargetCRC16% = CalculatedCRC16%
 
     FOR i% = 1 TO 100
@@ -30,8 +29,6 @@ SUB SearchMethodCode(FileHandle%, JarIdx%, MethodSignature$)
         EXIT SUB
     ENDIF
 
-    'PRINT "Method count: " + METHOD_COUNT% + "\r\n"
-
     FOR i% = 1 TO METHOD_COUNT%
         CALL ReadU(FileHandle%, 2)
         AccessFlags% = U2%
@@ -42,21 +39,18 @@ SUB SearchMethodCode(FileHandle%, JarIdx%, MethodSignature$)
         CALL ReadU(FileHandle%, 2)
         AttributesCount% = U2%
 
-        CALL GetConstantPoolEntry(JarIdx%, NameIndex%, FileHandle%)
+        CALL GetConstantPoolEntry(CP_IDX%, NameIndex%, FileHandle%)
         Method$ = CP_ENTRY$
-        'PRINT "Name: " + Method$ + "\r\n"
 
-        CALL GetConstantPoolEntry(JarIdx%, DescriptorIndex%, FileHandle%)
+        CALL GetConstantPoolEntry(CP_IDX%, DescriptorIndex%, FileHandle%)
         Method$ = Method$ + CP_ENTRY$
-        'PRINT "Descriptor: " + CP_ENTRY$ + "\r\n"
 
         IF AttributesCount% > 0 THEN
             FOR a% = 1 TO AttributesCount%
                 CALL ReadU(FileHandle%, 2)
                 AttributeNameIndex% = U2%
-                CALL GetConstantPoolEntry(JarIdx%, AttributeNameIndex%, FileHandle%)
+                CALL GetConstantPoolEntry(CP_IDX%, AttributeNameIndex%, FileHandle%)
                 Attribute$ = CP_ENTRY$
-                'PRINT "Attribute: " + Attribute$ + "\r\n"
                 CALL ReadU(FileHandle%, 4)
                 AttributeLength& = U4&
                 IsCodeAttribute% = FALSE
@@ -80,7 +74,6 @@ SUB SearchMethodCode(FileHandle%, JarIdx%, MethodSignature$)
                     METHOD_CACHE_CRC%[METHOD_CACHE_IDX%] = TargetCRC16%
                     METHOD_CACHE_POS&[METHOD_CACHE_IDX%] = POS&
                     METHOD_CACHE_LEN%[METHOD_CACHE_IDX%] = CODE_LEN%
-                    'PRINT "Method code found at position: " + POS& + "\r\n"
                     EXIT SUB
                 ELSE
                     Pos& = FPOS(FileHandle%)

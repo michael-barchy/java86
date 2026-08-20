@@ -2,7 +2,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import { V86 } from 'v86';
 import { fdisk, mkfsvfat, mount } from 'libmount';
-import { copyFileSync, existsSync, readFileSync, readdirSync, writeFileSync } from 'fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { platform } from 'os';
 import readline from 'readline';
@@ -15,6 +15,10 @@ const __dirname = dirname(__filename);
 globalThis.__dirname = __dirname;
 
 // bin files
+
+if (!existsSync('bin')) {
+    mkdirSync('bin');
+}
 
 const binFiles = {
     'janino-3.1.9.jar': 'https://repo1.maven.org/maven2/org/codehaus/janino/janino/3.1.9/janino-3.1.9.jar',
@@ -35,17 +39,26 @@ for (const binFile of binNames) {
 
 // compile classes
 
+if (!existsSync('build')) {
+    mkdirSync('build');
+}
+
 const sp = 'darwin' === platform() ? ':' : ';';
 const cp = `./bin/janino-3.1.9.jar${sp}./bin/commons-compiler-3.1.9.jar`;
 const javac = `java -classpath "${cp}" org.codehaus.commons.compiler.samples.CompilerDemo`;
 execSync(`${javac} -d build src/Native.java`);
 execSync(`${javac} -d build -classpath build src/Hello.java`);
 execSync(`${javac} -d build -classpath build src/StringUtils.java`);
-execSync(`${javac} -d build -classpath build src/Shell.java`);
-await zip.archiveFile('build/Native.class', 'build/NATIVE.JAR', { compressionLevel: 0 });
-await zip.archiveFile('build/Hello.class', 'build/HELLO.JAR', { compressionLevel: 0 });
-await zip.archiveFile('build/StringUtils.class', 'build/UTILS.JAR', { compressionLevel: 0 });
-await zip.archiveFile('build/Shell.class', 'build/SHELL.JAR', { compressionLevel: 0 });
+execSync(`${javac} -d build -classpath build src/*.java`);
+await zip.archiveFile('build/Native.class', 'release/NATIVE.JAR', { compressionLevel: 0 });
+await zip.archiveFile('build/Hello.class', 'release/HELLO.JAR', { compressionLevel: 0 });
+await zip.archiveFile('build/StringUtils.class', 'release/UTILS.JAR', { compressionLevel: 0 });
+await zip.archiveFile('build/Shell.class', 'release/SHELL.JAR', { compressionLevel: 0 });
+const demo = new zip.Zip({ compressionLevel: 0 });
+demo.addFile('build/Demo.class');
+demo.addFile('build/Proc1.class');
+demo.addFile('build/Proc2.class');
+await demo.archive('release/DEMO.JAR');
 
 // freedos bootdisk
 
@@ -161,11 +174,12 @@ const jarFiles = [
     'NATIVE.JAR',
     'HELLO.JAR',
     'UTILS.JAR',
-    'SHELL.JAR'
+    'SHELL.JAR',
+    'DEMO.JAR'
 ];
 
 jarFiles.forEach(file => {
-    const filePath = join(__dirname, 'build', file);
+    const filePath = join(__dirname, 'release', file);
     const fileData = readFileSync(filePath);
     const newFile = fileSystem.makeFile(file, { size: 0 });
     newFile.open().writeData(fileData);
@@ -180,6 +194,12 @@ const emulator = new V86({
     hda: { buffer: diskImage.buffer },
     autostart: true,
 });
+
+if (!existsSync('release')) {
+    mkdirSync('release');
+}
+
+let consoleLine = '';
 
 emulator.add_listener('serial0-output-byte', function(byte) {
     process.stdout.write(String.fromCharCode(byte));
@@ -205,3 +225,19 @@ process.stdin.on('keypress', (str, key) => {
         emulator.serial0_send(str);
     }
 });
+
+setTimeout(() => {
+    setInterval(() => {
+        const releaseFile = fileSystem.getFile('JAVA.COM');
+        if (null !== releaseFile) {
+            writeFileSync(join('release', 'JAVA.COM'), releaseFile.open()?.readData());
+            // process.exit();
+        }
+
+        const errFile = fileSystem.getFile('JAVA.ERR');
+        if (null !== errFile) {
+            console.log(Buffer.from(errFile.open()?.readData()).toString());
+            process.exit();
+        }
+    }, 1000);
+}, 2000); // boot

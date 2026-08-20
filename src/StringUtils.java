@@ -3,7 +3,15 @@ public class StringUtils {
         byte[] b1 = Native.getBytes(s1);
         byte[] b2 = Native.getBytes(s2);
 
+        if (b1.length == 0 && b2.length == 0) {
+            return true;
+        }
+
         if (b1.length != b2.length) {
+            return false;
+        }
+
+        if (b1.length == 0) {
             return false;
         }
 

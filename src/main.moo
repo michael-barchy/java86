@@ -3,10 +3,11 @@ SUB Java ()
     IF JAR_COUNT% > 0 THEN
         FOR I% = 1 TO JAR_COUNT%
             CALL GetJarFile(I%)
-            'PRINT "Jar file: " + JAR_FILE$ + "\r\n"
         NEXT
     ENDIF
-    'PRINT "Target class: " + TARGET_CLASS$ + "\r\n"
+    FOR I% = 1 TO %MAX_CP_CACHE
+        CP_CACHE%[I%] = 0
+    NEXT
     CALL NewProcess(TARGET_CLASS$, "main([Ljava/lang/String;)V", 0)
     ProcessLoop:
     Total% = 0
@@ -26,7 +27,7 @@ SUB Java ()
         ENDIF
         IF Running% = 1 THEN
             PROCESS_ID% = I%
-            'PRINT "RunCode: " + F% + ", " + I% + ", " + MethodIdx% + ", " + Offset% + ", " + CodeEnd% + "\r\n"
+            CP_IDX% = PROCESS_CPOOL%[I%]
             CALL RunCode(F%, MethodIdx%, Offset%)
             PROCESS_CODE_OFFSET%[I%] = CODE_OFFSET%
         ENDIF

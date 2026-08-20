@@ -1,6 +1,12 @@
-DIM CP_CACHE%[10]
-DIM CP_POS&[10] 'File position of the end of the constant pool
+%MAX_CP_CACHE = 10
+
+DIM CP_CRC%[%MAX_CP_CACHE]
+DIM CP_CACHE%[%MAX_CP_CACHE]
+DIM CP_JAR%[%MAX_CP_CACHE]
+DIM CP_POS&[%MAX_CP_CACHE]
 DIM CP_COUNT%
+DIM CP_IDX%
+
 DIM CP_ENTRY%
 DIM CP_ENTRY2%
 DIM CP_ENTRY$
@@ -19,5 +25,5 @@ DIM CP_ENTRY$
 %CP_InterfaceMethodref = 11
 %CP_NameAndType = 12
 
-SUB ReadConstantPool(FileHandle%, CP_IDX%)
+SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
 SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)

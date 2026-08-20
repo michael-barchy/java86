@@ -23,7 +23,6 @@ SUB ParseClass(F%)
     CALL ReadU(F%, 4)
 
     Magic$ = HEX32(U4&)
-    'PRINT Magic$ + "\r\n"
     IF Magic$ <> "cafebabe" THEN
         FCLOSE(F%)
         PRINT "Invalid magic: " + Magic$ + "\r\n"
