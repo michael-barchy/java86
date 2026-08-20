@@ -73,6 +73,10 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_POP THEN
+        CALL StackPop()
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_IINC THEN
         CALL ReadU(F%, 1)
         Index% = U1%
@@ -194,7 +198,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         'PRINT "IRETURN: " + StackValue% + "\r\n"
         ParentId% = PROCESS_PARENT%[PROCESS_ID%]
         FCLOSE(F%)
-        CALL KillProcess()
+        CALL KillProcess(PROCESS_ID%)
         CODE_OFFSET% = Offset% + 1
         PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
         IF ParentId% > 0 THEN
@@ -207,7 +211,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     IF OPCODE% = %OPCODE_RETURN THEN
         ParentId% = PROCESS_PARENT%[PROCESS_ID%]
         FCLOSE(F%)
-        CALL KillProcess()
+        CALL KillProcess(PROCESS_ID%)
         CODE_OFFSET% = Offset% + 1
         PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
         'PRINT "RETURN: " + PROCESS_ID% + ", " + ParentId% + "\r\n"
@@ -258,8 +262,8 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CALL StackPopString()
             PRINT StackValue$
             POS% = INSTR(StackValue$, "\r\n")
-            LEN% = LEN(StackValue$) - 2
-            IF POS% = LEN% THEN
+            SLEN% = LEN(StackValue$) - 2
+            IF POS% = SLEN% THEN
                 'PRINT "Free memory: " + FREEMEM(0) + "\r\n"
             ENDIF
             CODE_OFFSET% = Offset% + 3
@@ -274,6 +278,17 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             BYTES$ = StackValue$
             'PRINT "getBytes: ***" + BYTES$ + "***\r\n"
             CALL StackPushString(BYTES$)
+            CODE_OFFSET% = Offset% + 3
+        ENDIF
+        IF MethodRef$ = "Native.newProcess(Ljava/lang/String;)I" THEN
+            CALL StackPopString()
+            CALL NewProcess(StackValue$, "main([Ljava/lang/String;)V", 0)
+            CALL StackPush(PROCESS_ID%, %TYPE_INT)
+            CODE_OFFSET% = Offset% + 3
+        ENDIF
+        IF MethodRef$ = "Native.killProcess(I)V" THEN
+            CALL StackPop()
+            CALL KillProcess(StackValue%)
             CODE_OFFSET% = Offset% + 3
         ENDIF
         IF CODE_OFFSET% = -1 THEN
@@ -295,13 +310,13 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     FSEEK(F%, OLD_POS&)
 END SUB
 
-SUB StackPush(Value%, Type@)
+SUB StackPush(Value%, StackType@)
     STACK_PTR% = PROCESS_STACK_PTR%[PROCESS_ID%]
     STACK_SIZE% = MGET(STACK_PTR%)
     STACK_OFFSET% = STACK_SIZE% * %STACK_ENTRY_SIZE
     STACK_OFFSET% = STACK_OFFSET% + STACK_PTR%
     STACK_OFFSET% = STACK_OFFSET% + 2 'First word = Stack size
-    MEMSETB(Type@, STACK_OFFSET%, 1)
+    MEMSETB(StackType@, STACK_OFFSET%, 1)
     STACK_OFFSET% = STACK_OFFSET% + 1
     MEMSETW(Value%, STACK_OFFSET%, 1)
     STACK_SIZE% = STACK_SIZE% + 1
@@ -343,7 +358,7 @@ SUB StackPopString()
     'PRINT "StackPopString: ***" + STR_PTR% + "***, " + STR_LEN% + ", " + StackValue% + "\r\n"
 END SUB
 
-SUB LocalSet(Index%, Value%, Type@)
+SUB LocalSet(Index%, Value%, LocalsType@)
     LOCALS_PTR% = PROCESS_LOCALS_PTR%[PROCESS_ID%]
     LOCALS_OFFSET% = Index% * %LOCALS_ENTRY_SIZE
     LOCALS_OFFSET% = LOCALS_OFFSET% + LOCALS_PTR%
@@ -359,7 +374,7 @@ SUB LocalSet(Index%, Value%, Type@)
         ENDIF
         LOCALS_OFFSET% = LOCALS_OFFSET% - 1
     ENDIF
-    MEMSETB(Type@, LOCALS_OFFSET%, 1)
+    MEMSETB(LocalsType@, LOCALS_OFFSET%, 1)
     LOCALS_OFFSET% = LOCALS_OFFSET% + 1
     MEMSETW(Value%, LOCALS_OFFSET%, 1)
     'PRINT "LocalSet: " + Index% + ", " + Value% + ", " + LOCALS_PTR% + ", " + LOCALS_OFFSET% + "\r\n"

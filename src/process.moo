@@ -77,11 +77,11 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
     NEXT
 END SUB
 
-SUB KillProcess()
-    PROCESS_FILE%[PROCESS_ID%] = 0
+SUB KillProcess(PID%)
+    PROCESS_FILE%[PID%] = 0
 
     'Free stack strings
-    STACK_PTR% = PROCESS_STACK_PTR%[PROCESS_ID%]
+    STACK_PTR% = PROCESS_STACK_PTR%[PID%]
     STACK_SIZE% = MGET(STACK_PTR%)
     IF STACK_SIZE% > 0 THEN
         FOR I% = 1 TO STACK_SIZE%
@@ -107,7 +107,7 @@ SUB KillProcess()
     MFREE(STACK_PTR%)
 
     'Free locals strings
-    LOCALS_PTR% = PROCESS_LOCALS_PTR%[PROCESS_ID%]
+    LOCALS_PTR% = PROCESS_LOCALS_PTR%[PID%]
     FOR I% = 1 TO %MAX_LOCALS
         LOCALS_OFFSET% = I%  - 1
         LOCALS_OFFSET% = LOCALS_OFFSET% * %LOCALS_ENTRY_SIZE

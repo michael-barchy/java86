@@ -16,6 +16,7 @@
 %OPCODE_ASTORE_1 = 76
 %OPCODE_ASTORE_2 = 77
 %OPCODE_ASTORE_3 = 78
+%OPCODE_POP = 87
 %OPCODE_IINC = 132
 %OPCODE_IFEQ = 153
 %OPCODE_IFNE = 154
@@ -46,11 +47,11 @@ DIM LocalValue%
 DIM LocalValue$
 
 SUB RunCode(F%, MethodIdx%, Offset%)
-SUB StackPush(Value%, Type@)
+SUB StackPush(Value%, StackType@)
 SUB StackPushString(Value$)
 SUB StackPop()
 SUB StackPopString()
-SUB LocalSet(Index%, Value%, Type@)
+SUB LocalSet(Index%, Value%, LocalsType@)
 SUB LocalSetString(Index%, Value$)
 SUB LocalGet(Index%)
 SUB LocalGetString(Index%)
