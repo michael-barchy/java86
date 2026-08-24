@@ -44,6 +44,18 @@ JAVA.COM -classpath NATIVE.JAR;HELLO.JAR Hello
 
 Classes must be compiled using a Java 1.4 compatible compiler (janino recommended; requires Java).
 
+### Included commands
+
+Start "shell"
+```shell
+npm run start
+```
+
+Launch "demo"
+```shell
+npm run start:demo
+```
+
 ## Example
 
 Here is a really simple "Hello world" examples
@@ -56,11 +68,21 @@ public class Hello {
 }
 ```
 
-## Memory usage
+## Optimize your code
 
-- Jar files cache (10) = 2630 bytes
-- Class files constant pool cache = 60 bytes + (contant pool size * 9 bytes)
-- Methods cache (100) = 800 bytes
-- Process (=method; 10 stack + 10 locals) = 62 bytes + string size
+Instead of
+```java
+for (int i = 0; i < 10; i++) {
+    Native.print("Hello\r\n");
+}
+```
 
-Java86 can be compiled to use FAR memory (compile using MRC JAVA !FAR) @todo
+Use
+```java
+String hello = "Hello\r\n";
+for (int i = 0; i < 10; i++) {
+    Native.print(hello);
+}
+```
+
+This will reduce disk acccess.

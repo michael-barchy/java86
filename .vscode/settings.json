@@ -1,7 +1,7 @@
 {
     "files.associations": {
-        ".moo": "vb",
-        ".h": "vb"
+        "*.moo": "vbs",
+        "*.h": "vbs"
     },
     "files.eol": "\r\n",
     "editor.tabSize": 4,
