@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "start": "node shell.mjs",
+    "start:demo": "node demo.mjs"
   },
   "dependencies": {
     "libmount": "^0.6.0",

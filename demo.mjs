@@ -1,3 +1,3 @@
 import { run } from './common.mjs';
 
-run();
+run(['MAKE.BAT', 'DEMO.BAT'], false);
