@@ -9,6 +9,7 @@ BEGIN DEF
 #INCLUDE src/cpool.h
 #INCLUDE src/method.h
 #INCLUDE src/opcode.h
+#INCLUDE src/native.h
 #INCLUDE src/process.h
 
 BEGIN CODE

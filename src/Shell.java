@@ -1,24 +1,45 @@
 public class Shell {
     public static void main(String[] args) {
         Native.print("Welcome !\r\n");
+        String invite = "# ";
+        String suffix = "\r\n";
         String input = "";
-        while (!StringUtils.equals("exit", input)) {
-            Native.print("# ");
+        while ("exit" != input) {
+            Native.print(invite);
             input = Native.input();
-            Native.print("\r\n");
-            if (StringUtils.equals("help", input)) {
-                Native.print("Command shell usage\r\n");
-                Native.print("-------------------\r\n");
-                Native.print("    help     Display this help message\r\n");
-                Native.print("    exit     Exit the command shell\r\n");
-                Native.print("\r\n");
-            } else {
-                if (!StringUtils.equals("exit", input) && !StringUtils.equals("", input)) {
-                    Native.print("Unsupported command ");
-                    Native.print(input);
-                    Native.print(". Type help to list available commands.\r\n");
-                }
-            }
+            Native.print(suffix);
+            Shell.parseCmd(input);
         }
+    }
+
+    public static void parseCmd(String cmd) {
+        if (cmd == "") {
+            return;
+        }
+
+        if (cmd == "help") {
+            Shell.help();
+            return;
+        }
+
+        if (cmd == "exit") {
+            return;
+        }
+
+        Shell.unknownCmd(cmd);
+    }
+
+    public static void help() {
+        Native.print("Command shell usage\r\n");
+        Native.print("-------------------\r\n");
+        Native.print("    help     Display this help message\r\n");
+        Native.print("    exit     Exit the command shell\r\n");
+        Native.print("\r\n");
+    }
+
+    public static void unknownCmd(String cmd) {
+        Native.print("Unsupported command ");
+        Native.print(cmd);
+        Native.print(". Type help to list available commands.\r\n");
     }
 }

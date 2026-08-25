@@ -67,22 +67,3 @@ public class Hello {
     }
 }
 ```
-
-## Optimize your code
-
-Instead of
-```java
-for (int i = 0; i < 10; i++) {
-    Native.print("Hello\r\n");
-}
-```
-
-Use
-```java
-String hello = "Hello\r\n";
-for (int i = 0; i < 10; i++) {
-    Native.print(hello);
-}
-```
-
-This will reduce disk acccess.

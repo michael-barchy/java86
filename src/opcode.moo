@@ -1,6 +1,5 @@
 SUB RunCode(F%, MethodIdx%, Offset%)
     JarIdx% = METHOD_CACHE_FILE_IDX%[MethodIdx%]
-    OLD_POS& = FPOS(F%)
     CODE_OFFSET% = -1
     POS& = METHOD_CACHE_POS&[MethodIdx%]
     POS& = POS& + Offset%
@@ -93,6 +92,19 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             IF StackValue% > 0 THEN
                 MFREE(StackValue%)
             ENDIF
+        ENDIF
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
+    IF OPCODE% = %OPCODE_DUP THEN
+        CALL StackPop()
+        IF STACK_TYPE% = %TYPE_REF THEN
+            CALL StackPush(StackValue%, %TYPE_REF)
+            CALL StackPopString()
+            CALL StackPushString(StackValue$)
+            CALL StackPushString(StackValue$)
+        ELSE
+            CALL StackPush(StackValue%, %TYPE_INT)
+            CALL StackPush(StackValue%, %TYPE_INT)
         ENDIF
         CODE_OFFSET% = Offset% + 1
     ENDIF
@@ -233,6 +245,9 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             PROCESS_IDLE%[PROCESS_ID%] = 0
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_INVOKE_VIRTUAL THEN
+        OPCODE% = %OPCODE_INVOKE_STATIC
+    ENDIF
     IF OPCODE% = %OPCODE_INVOKE_STATIC THEN
         CALL ReadU(F%, 2)
         METHOD_REF% = U2%
@@ -248,58 +263,61 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL GetConstantPoolEntry(CP_IDX%, DESCRIPTOR%, F%)
         MethodRef$ = MethodName$ + CP_ENTRY$
         IF ClassName$ <> "Native" THEN
-            '@todo - invoke other class method (non-native)
-            Call StackPopString()
-            STACK_POP2$ = StackValue$
-            STACK_POP2% = StackValue%
-            Call StackPopString()
-            STACK_POP1$ = StackValue$
-            STACK_POP1% = StackValue%
+            S% = SINSTR(MethodRef$, "(")
+            ParamCount% = 0
+            IF S% > 0 THEN
+                S% = S% + 1
+                Params$ = MID(MethodRef$, S%)
+                L% = LEN(Params$)
+                FOR P% = 1 TO L%
+                    C$ = MID(Params$, P%, 1)
+                    IF C$ = "L" THEN
+                        SP% = SINSTR(Params$, ";")
+                        IF SP% > 0 THEN
+                            ParamCount% = ParamCount% + 1
+                            ParamTypes%[ParamCount%] = %TYPE_REF
+                            P% = SP%
+                        ENDIF
+                    ELSE
+                        IF C$ = ")" THEN
+                            EXIT FOR
+                        ENDIF
+                        IF C$ <> "[" THEN
+                            ParamCount% = ParamCount% + 1
+                            ParamTypes%[ParamCount%] = %TYPE_INT
+                        ENDIF
+                    ENDIF
+                NEXT
+            ENDIF
+            FOR I% = 1 TO ParamCount% STEP -1
+                IF ParamTypes%[I%] = %TYPE_REF THEN
+                    CALL StackPopString()
+                    STR_LEN% = LEN(StackValue$)
+                    STR_LEN% = STR_LEN% + 2
+                    STR_PTR% = MALLOC(STR_LEN%)
+                    MEMCOPY(STRPTR(StackValue$), STR_PTR%, STR_LEN%)
+                    Params%[I%] = STR_PTR%
+                ELSE
+                    CALL StackPop()
+                    Params%[I%] = StackValue%
+                ENDIF
+            NEXT
             PROCESS_IDLE%[PROCESS_ID%] = 1
             CODE_OFFSET% = Offset% + 3
             PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
             ParentId% = PROCESS_ID%
             CALL NewProcess(ClassName$, MethodRef$, ParentId%)
-            CALL LocalSetString(0, STACK_POP1$)
-            CALL LocalSetString(1, STACK_POP2$)
+            FOR I% = 1 TO ParamCount%
+                LocalsIndex% = I% - 1
+                Param% = Params%[I%]
+                ParamType@ = ParamTypes%[I%]
+                CALL LocalSet(LocalsIndex%, Param%, ParamType@)
+            NEXT
             PROCESS_ID% = ParentId%
             CODE_OFFSET% = PROCESS_CODE_OFFSET%[PROCESS_ID%]
         ELSE
             MethodRef$ = ClassName$ + "." + MethodRef$
-        ENDIF
-        IF MethodRef$ = "Native.print(Ljava/lang/String;)V" THEN
-            CALL StackPopString()
-            PRINT StackValue$
-            POS% = INSTR(StackValue$, "\r\n")
-            SLEN% = LEN(StackValue$) - 2
-            IF POS% = SLEN% THEN
-                'PRINT "Free memory: " + FREEMEM(0) + "\r\n"
-            ENDIF
-            CODE_OFFSET% = Offset% + 3
-        ENDIF
-        IF MethodRef$ = "Native.input()Ljava/lang/String;" THEN
-            INPUT STACK_PUSH$
-            CALL StackPushString(STACK_PUSH$)
-            CODE_OFFSET% = Offset% + 3
-        ENDIF
-        IF MethodRef$ = "Native.getBytes(Ljava/lang/String;)[B" THEN
-            CALL StackPopString()
-            BYTES$ = StackValue$
-            CALL StackPushString(BYTES$)
-            CODE_OFFSET% = Offset% + 3
-        ENDIF
-        IF MethodRef$ = "Native.newProcess(Ljava/lang/String;)I" THEN
-            CALL StackPopString()
-            ParentId% = PROCESS_ID%
-            CALL NewProcess(StackValue$, "main([Ljava/lang/String;)V", 0)
-            PROCESS_ID% = ParentId%
-            CALL StackPush(PROCESS_ID%, %TYPE_INT)
-            CODE_OFFSET% = Offset% + 3
-        ENDIF
-        IF MethodRef$ = "Native.killProcess(I)V" THEN
-            CALL StackPop()
-            CALL KillProcess(StackValue%)
-            CODE_OFFSET% = Offset% + 3
+            CALL InvokeNative(MethodRef$, Offset%)
         ENDIF
         IF CODE_OFFSET% = -1 THEN
             END
@@ -315,7 +333,6 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         PRINT "UNSUPPORTED OPCODE: " + OPCODE% + "\r\n"
         END
     ENDIF
-    FSEEK(F%, OLD_POS&)
 END SUB
 
 SUB StackPush(Value%, StackType@)
