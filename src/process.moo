@@ -57,7 +57,9 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
     NEXT
 END SUB
 
-SUB KillProcess(PID%)
+SUB KillProcess(PID%, ReturnType@, ReturnValue%)
+    ParentId% = PROCESS_PARENT%[PID%]
+
     PROCESS_FILE%[PID%] = 0
     PROCESS_CPOOL%[PID%] = 0
 
@@ -70,16 +72,32 @@ SUB KillProcess(PID%)
             STACK_OFFSET% = STACK_OFFSET% * %STACK_ENTRY_SIZE
             STACK_OFFSET% = STACK_OFFSET% + STACK_PTR%
             STACK_OFFSET% = STACK_OFFSET% + 2 'First word = Stack size
-            STACK_TYPE$ = SPACE(1)
-            STACK_TYPE$ = MGET(STACK_OFFSET%)
-            STACK_TYPE% = ASC(STACK_TYPE$)
-            IF STACK_TYPE% = %TYPE_REF THEN
+            B$ = CHR(0)
+            B$ = MGET(STACK_OFFSET%)
+            B% = ASC(B$)
+            StackType@ = ASC(B$)
+            IF StackType@ = %TYPE_REF THEN
                 MEMSETB(%TYPE_INT, STACK_OFFSET%, 1)
                 STACK_OFFSET% = STACK_OFFSET% + 1
                 STACK_REF% = MGET(STACK_OFFSET%)
-                MEMSETW(0, STACK_OFFSET%, 1)
-                IF STACK_REF% > 0 THEN
-                    MFREE(STACK_REF%)
+                KeepStack% = 0
+                IF ReturnType@ = %TYPE_REF THEN
+                    IF STACK_REF% = ReturnValue% THEN
+                        KeepStack% = 1
+                    ENDIF
+                ENDIF
+                IF KeepStack% = 0 THEN
+                    CALL CheckRef(STACK_REF%)
+                    KeepStack% = REF_USED%
+                ENDIF
+                IF KeepStack% = 0 THEN
+                    IF STACK_REF% > 0 THEN
+                        MEMSETW(0, STACK_OFFSET%, 1)
+                        MFREE(STACK_REF%)
+                    ENDIF
+                ELSE
+                    STACK_OFFSET% = STACK_OFFSET% - 1
+                    MEMSETB(%TYPE_REF, STACK_OFFSET%, 1)
                 ENDIF
             ENDIF
         NEXT
@@ -95,21 +113,97 @@ SUB KillProcess(PID%)
         LOCALS_OFFSET% = I%  - 1
         LOCALS_OFFSET% = LOCALS_OFFSET% * %LOCALS_ENTRY_SIZE
         LOCALS_OFFSET% = LOCALS_OFFSET% + LOCALS_PTR%
-        LOCALS_TYPE$ = SPACE(1)
-        LOCALS_TYPE$ = MGET(LOCALS_OFFSET%)
-        LOCALS_TYPE% = ASC(LOCALS_TYPE$)
-        IF LOCALS_TYPE% = %TYPE_REF THEN
+        B$ = CHR(0)
+        B$ = MGET(LOCALS_OFFSET%)
+        B% = ASC(B$)
+        LocalsType@ = B%
+        IF LocalsType@ = %TYPE_REF THEN
             MEMSETB(%TYPE_INT, LOCALS_OFFSET%, 1)
             LOCALS_OFFSET% = LOCALS_OFFSET% + 1
             LOCALS_REF% = MGET(LOCALS_OFFSET%)
-            MEMSETW(0, LOCALS_OFFSET%, 1)
-            IF LOCALS_REF% > 0 THEN
-                MFREE(LOCALS_REF%)
+            KeepLocals% = 0
+            IF ReturnType@ = %TYPE_REF THEN
+                IF LOCALS_REF% = ReturnValue% THEN
+                    KeepLocals% = 1
+                ENDIF
+            ENDIF
+            IF KeepLocals% = 0 THEN
+                CALL CheckRef(LOCALS_REF%)
+                KeepLocals% = REF_USED%
+            ENDIF
+            IF KeepLocals% = 0 THEN
+                IF LOCALS_REF% > 0 THEN
+                    MEMSETW(0, LOCALS_OFFSET%, 1)
+                    MFREE(LOCALS_REF%)
+                ENDIF
+            ELSE
+                LOCALS_OFFSET% = LOCALS_OFFSET% - 1
+                MEMSETB(%TYPE_REF, LOCALS_OFFSET%, 1)
             ENDIF
         ENDIF
     NEXT
     IF LOCALS_PTR% > 0 THEN
         MFREE(LOCALS_PTR%)
         PROCESS_LOCALS_PTR%[PID%] = 0
+    ENDIF
+
+    IF ParentId% > 0 THEN
+        PROCESS_ID% = ParentId%
+        IF ReturnType@ <> %TYPE_NONE THEN
+            CALL StackPush(ReturnValue%, ReturnType@)
+        ENDIF
+        PROCESS_IDLE%[PROCESS_ID%] = 0
+        CODE_OFFSET% = PROCESS_CODE_OFFSET%[PROCESS_ID%]
+    ENDIF
+END SUB
+
+SUB CheckRef(Ref%)
+    REF_USED% = 0
+    IF Ref% > 0 THEN
+        FOR P% = 1 TO %MAX_PROCESS
+            IF PROCESS_FILE%[P%] > 0 THEN
+                STACK_PTR% = PROCESS_STACK_PTR%[P%]
+                STACK_SIZE% = MGET(STACK_PTR%)
+                IF STACK_SIZE% > 0 THEN
+                    FOR I% = 1 TO STACK_SIZE%
+                        STACK_OFFSET% = I% - 1
+                        STACK_OFFSET% = STACK_OFFSET% * %STACK_ENTRY_SIZE
+                        STACK_OFFSET% = STACK_OFFSET% + STACK_PTR%
+                        STACK_OFFSET% = STACK_OFFSET% + 2 'First word = Stack size
+                        B$ = CHR(0)
+                        B$ = MGET(STACK_OFFSET%)
+                        B% = ASC(B$)
+                        StackType@ = B%
+                        IF StackType@ = %TYPE_REF THEN
+                            STACK_OFFSET% = STACK_OFFSET% + 1
+                            STACK_REF% = MGET(STACK_OFFSET%)
+                            IF STACK_REF% = Ref% THEN
+                                REF_USED% = 1
+                                EXIT SUB
+                            ENDIF
+                        ENDIF
+                    NEXT
+                ENDIF
+                LOCALS_PTR% = PROCESS_LOCALS_PTR%[P%]
+                FOR I% = 1 TO %MAX_LOCALS
+                    LOCALS_OFFSET% = I%  - 1
+                    LOCALS_OFFSET% = LOCALS_OFFSET% * %LOCALS_ENTRY_SIZE
+                    LOCALS_OFFSET% = LOCALS_OFFSET% + LOCALS_PTR%
+                    LOCALS_OFFSET% = LOCALS_OFFSET%
+                    B$ = CHR(0)
+                    B$ = MGET(LOCALS_OFFSET%)
+                    B% = ASC(B$)
+                    LocalsType@ = B%
+                    IF LocalsType@ = %TYPE_REF THEN
+                        LOCALS_OFFSET% = LOCALS_OFFSET% + 1
+                        LOCALS_REF% = MGET(LOCALS_OFFSET%)
+                        IF LOCALS_REF% = Ref% THEN
+                            REF_USED% = 1
+                            EXIT SUB
+                        ENDIF
+                    ENDIF
+                NEXT
+            ENDIF
+        NEXT
     ENDIF
 END SUB

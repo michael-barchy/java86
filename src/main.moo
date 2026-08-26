@@ -31,8 +31,10 @@ SUB Java ()
             CALL RunCode(F%, MethodIdx%, Offset%)
             PROCESS_CODE_OFFSET%[I%] = CODE_OFFSET%
         ENDIF
-        IF CODE_OFFSET% <= CodeEnd% THEN
-            Total% = Total% + 1
+        IF F% > 0 THEN
+            IF CODE_OFFSET% <= CodeEnd% THEN
+                Total% = Total% + 1
+            ENDIF
         ENDIF
     NEXT
     IF Total% = 0 THEN

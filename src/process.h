@@ -11,6 +11,8 @@ DIM PROCESS_LOCALS_PTR%[%MAX_PROCESS]
 DIM PROCESS_IDLE%[%MAX_PROCESS]
 
 DIM PROCESS_ID% = 0
+DIM REF_USED% = 0
 
 SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
-SUB KillProcess(PID%)
+SUB KillProcess(PID%, ReturnType@, ReturnValue%)
+SUB CheckRef(Ref%)

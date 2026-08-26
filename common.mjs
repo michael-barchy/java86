@@ -229,12 +229,16 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
             const releaseFile = fileSystem.getFile('JAVA.COM');
             if (null !== releaseFile) {
                 writeFileSync(join('release', 'JAVA.COM'), releaseFile.open()?.readData());
-                if (exitOnBuild) process.exit();
+                if (exitOnBuild) {
+                    releaseFile.delete();
+                    process.exit();
+                }
             }
 
             const errFile = fileSystem.getFile('JAVA.ERR');
             if (null !== errFile) {
                 console.log(Buffer.from(errFile.open()?.readData()).toString());
+                errFile.delete();
                 if(exitOnBuild) process.exit();
             }
         }, 1000);

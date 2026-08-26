@@ -33,7 +33,10 @@ END SUB
 SUB GetJarFile(JarIdx%)
     STR_PTR% = JAR_FILES%[JarIdx%]
     StrLen% = MGET(STR_PTR%)
-    JAR_FILE$ = SPACE(StrLen%)
+    JAR_FILE$ = ""
+    IF StrLen% > 0 THEN
+        JAR_FILE$ = SPACE(StrLen%)
+    ENDIF
     StrLen% = StrLen% + 2
     MEMCOPY(STR_PTR%, STRPTR(JAR_FILE$), StrLen%)
 END SUB

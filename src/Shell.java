@@ -8,17 +8,19 @@ public class Shell {
             Native.print(invite);
             input = Native.input();
             Native.print(suffix);
-            Shell.parseCmd(input);
+            parseCmd(input);
         }
     }
 
     public static void parseCmd(String cmd) {
+        cmd = StringUtils.trim(cmd);
+
         if (cmd == "") {
             return;
         }
 
         if (cmd == "help") {
-            Shell.help();
+            help();
             return;
         }
 
@@ -26,7 +28,7 @@ public class Shell {
             return;
         }
 
-        Shell.unknownCmd(cmd);
+        unknownCmd(cmd);
     }
 
     public static void help() {

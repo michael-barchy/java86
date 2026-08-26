@@ -51,6 +51,7 @@ SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
 
     CALL ReadU(FileHandle%, 2)
     CP_COUNT% = U2% - 1
+    CP_NB%[CP_IDX%] = CP_COUNT%
 
     CP_LEN% = CP_COUNT% * %CP_ENTRY_SIZE
     PTR%  = MALLOC(CP_LEN%)
@@ -193,9 +194,9 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
     CP_OFFSET% = EntryIdx% - 1
     CP_OFFSET% = CP_OFFSET% * %CP_ENTRY_SIZE
     CP_PTR% = CP_PTR% + CP_OFFSET%
-    CP_TAG$ = SPACE(1)
-    CP_TAG$ = MGET(CP_PTR%)
-    CP_TAG% = ASC(CP_TAG$)
+    B$ = CHR(0)
+    B$ = MGET(CP_PTR%)
+    CP_TAG% = ASC(B$)
     CP_ENTRY% = 0
     CP_ENTRY2% = 0
     CP_ENTRY$ = ""

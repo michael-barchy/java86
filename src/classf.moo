@@ -3,7 +3,7 @@ SUB ReadU(FileHandle%, Bytes%)
 
     U% = 0
     FOR I% = 1 TO Bytes%
-        B$ = SPACE(1)
+        B$ = CHR(0)
         B$ = FGET(FileHandle%)
         U% = ASC(B$)
         U@ = U%

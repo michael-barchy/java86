@@ -6,6 +6,10 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     FSEEK(F%, POS&)
     CALL ReadU(F%, 1)
     OPCODE% = U1%
+    IF OPCODE% = %OPCODE_ACONST_NULL THEN
+        CALL StackPush(0, %TYPE_NULL)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% >= %OPCODE_ICONST_0 THEN
         IF OPCODE% <= %OPCODE_ICONST_5 THEN
             VALUE% = OPCODE% - %OPCODE_ICONST_0
@@ -38,6 +42,13 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL StackPush(LocalValue%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 2
     ENDIF
+    IF OPCODE% = %OPCODE_ALOAD THEN
+        CALL ReadU(F%, 1)
+        INDEX% = U1%
+        CALL LocalGet(INDEX%)
+        CALL StackPush(LocalValue%, %TYPE_REF)
+        CODE_OFFSET% = Offset% + 2
+    ENDIF
     IF OPCODE% >= %OPCODE_ILOAD_0 THEN
         IF OPCODE% <= %OPCODE_ILOAD_3 THEN
             Index% = OPCODE% - %OPCODE_ILOAD_0
@@ -49,18 +60,39 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     IF OPCODE% >= %OPCODE_ALOAD_0 THEN
         IF OPCODE% <= %OPCODE_ALOAD_3 THEN
             Index% = OPCODE% - %OPCODE_ALOAD_0
-            CALL LocalGetString(Index%)
-            CALL StackPushString(LocalValue$)
+            CALL LocalGet(Index%)
+            CALL StackPush(LocalValue%, %TYPE_REF)
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_BALOAD THEN
         CALL StackPop()
-        Index% = StackValue% + 1
-        CALL StackPopString()
-        C$ = MID(StackValue$, Index%, 1)
-        C% = ASC(C$)
+        Index% = StackValue%
+        CALL StackPop()
+        StackType@ = STACK_TYPE%
+        STR_PTR% = StackValue%
+        IF STR_PTR% = 0 THEN
+            PRINT "Null pointer exception\r\n"
+            END
+        ENDIF
+        L% = MGET(STR_PTR%)
+        E% = L% - 1
+        IF Index% > E% THEN
+            PRINT "Array index out of bounds: " + Index% + "\r\n"
+            END
+        ENDIF
+        STR_OFFSET% = STR_PTR% + 2
+        STR_OFFSET% = STR_OFFSET% + Index%
+        B$ = CHR(0)
+        B$ = MGET(STR_OFFSET%)
+        C% = ASC(B$)
         CALL StackPush(C%, %TYPE_INT)
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                MFREE(STR_PTR%)
+            ENDIF
+        ENDIF
         CODE_OFFSET% = Offset% + 1
     ENDIF
     IF OPCODE% = %OPCODE_ISTORE THEN
@@ -70,8 +102,15 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL LocalSet(Index%, StackValue%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 2
     ENDIF
+    IF OPCODE% = %OPCODE_ASTORE THEN
+        CALL ReadU(F%, 1)
+        Index% = U1%
+        CALL StackPop()
+        CALL LocalSet(Index%, StackValue%, %TYPE_REF)
+        CODE_OFFSET% = Offset% + 2
+    ENDIF
     IF OPCODE% >= %OPCODE_ISTORE_0 THEN
-        IF OPCODE% <= %OPCODE_ISTORE_3 THEN
+        IF OPCODE% <= %OPCODE_ISTORE_4 THEN
             Index% = OPCODE% - %OPCODE_ISTORE_0
             CALL StackPop()
             CALL LocalSet(Index%, StackValue%, %TYPE_INT)
@@ -81,31 +120,80 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     IF OPCODE% >= %OPCODE_ASTORE_0 THEN
         IF OPCODE% <= %OPCODE_ASTORE_3 THEN
             Index% = OPCODE% - %OPCODE_ASTORE_0
-            CALL StackPopString()
-            CALL LocalSetString(Index%, StackValue$)
+            CALL StackPop()
+            CALL LocalSet(Index%, StackValue%, %TYPE_REF)
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_BASTORE THEN
+        CALL StackPop()
+        VALUE@ = StackValue%
+        CALL StackPop()
+        Index% = StackValue%
+        CALL StackPop()
+        StackType@ = STACK_TYPE%
+        L% = MGET(StackValue%)
+        E% = L% - 1
+        IF Index% > E% THEN
+            PRINT "Array index out of bounds: " + Index% + "\r\n"
+            END
+        ENDIF
+        StrSize% = L% + 2
+        STR_PTR% = StackValue%
+        IF STR_PTR% = 0 THEN
+            PRINT "Null pointer exception\r\n"
+            END
+        ENDIF
+        STR_OFFSET% = STR_PTR% + Index%
+        STR_OFFSET% = STR_OFFSET% + 2
+        MEMSETB(VALUE@, STR_OFFSET%, 1)
+        IF StackType@ = %TYPE_REF THEN
+            IF STR_PTR% > 0 THEN
+                CALL CheckRef(STR_PTR%)
+                IF REF_USED% = 0 THEN
+                    MFREE(STR_PTR%)
+                ENDIF
+            ENDIF
+        ENDIF
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_POP THEN
         CALL StackPop()
-        IF STACK_TYPE% = %TYPE_REF THEN
-            IF StackValue% > 0 THEN
-                MFREE(StackValue%)
+        StackType@ = STACK_TYPE%
+        IF StackType@ = %TYPE_REF THEN
+            STR_PTR% = StackValue%
+            IF STR_PTR% > 0 THEN
+                CALL CheckRef(STR_PTR%)
+                IF REF_USED% = 0 THEN
+                    MFREE(STR_PTR%)
+                ENDIF
             ENDIF
         ENDIF
         CODE_OFFSET% = Offset% + 1
     ENDIF
     IF OPCODE% = %OPCODE_DUP THEN
         CALL StackPop()
-        IF STACK_TYPE% = %TYPE_REF THEN
-            CALL StackPush(StackValue%, %TYPE_REF)
-            CALL StackPopString()
-            CALL StackPushString(StackValue$)
-            CALL StackPushString(StackValue$)
-        ELSE
-            CALL StackPush(StackValue%, %TYPE_INT)
-            CALL StackPush(StackValue%, %TYPE_INT)
-        ENDIF
+        StackType@ = STACK_TYPE%
+        CALL StackPush(StackValue%, StackType@)
+        CALL StackPush(StackValue%, StackType@)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
+    IF OPCODE% = %OPCODE_IADD THEN
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        STACK_ADD% = STACK_POP1% + STACK_POP2%
+        CALL StackPush(STACK_ADD%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
+    IF OPCODE% = %OPCODE_ISUB THEN
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        STACK_SUB% = STACK_POP1% - STACK_POP2%
+        CALL StackPush(STACK_SUB%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 1
     ENDIF
     IF OPCODE% = %OPCODE_IINC THEN
@@ -113,6 +201,9 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         Index% = U1%
         CALL ReadU(F%, 1)
         Inc% = U1%
+        IF Inc% > 127 THEN
+            Inc% = Inc% - 256
+        ENDIF
         CALL LocalGet(Index%)
         LocalValue% = LocalValue% + Inc%
         CALL LocalSet(Index%, LocalValue%, %TYPE_INT)
@@ -177,46 +268,111 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = Offset% + 3
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_IF_ICMPGE THEN
+        CALL ReadU(F%, 2)
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        IF STACK_POP1% >= STACK_POP2% THEN
+            CODE_OFFSET% = Offset% + U2%
+        ELSE
+            POS& = FPOS(F%)
+            CODE_OFFSET% = Offset% + 3
+        ENDIF
+    ENDIF
+    IF OPCODE% = %OPCODE_IF_ICMPGT THEN
+        CALL ReadU(F%, 2)
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        IF STACK_POP1% > STACK_POP2% THEN
+            CODE_OFFSET% = Offset% + U2%
+        ELSE
+            POS& = FPOS(F%)
+            CODE_OFFSET% = Offset% + 3
+        ENDIF
+    ENDIF
+    IF OPCODE% = %OPCODE_IF_ICMPLE THEN
+        CALL ReadU(F%, 2)
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        IF STACK_POP1% <= STACK_POP2% THEN
+            CODE_OFFSET% = Offset% + U2%
+        ELSE
+            POS& = FPOS(F%)
+            CODE_OFFSET% = Offset% + 3
+        ENDIF
+    ENDIF
     IF OPCODE% = %OPCODE_IF_ACMPEQ THEN
         CALL ReadU(F%, 2)
         CALL StackPopString()
+        STACK_TYPE1@ = STACK_TYPE%
         STACK_POP1% = StackValue%
         STACK_POP1$ = StackValue$
         CALL StackPopString()
+        STACK_TYPE2@ = STACK_TYPE%
         STACK_POP2% = StackValue%
         STACK_POP2$ = StackValue$
-        IF_ACMPEQ% = 0
-        IF STACK_POP1% = STACK_POP2% THEN
-            IF_ACMPEQ% = 1
-        ELSE
-            IF STACK_POP1$ = STACK_POP2$ THEN
-                IF_ACMPEQ% = 1
-            ENDIF
-        ENDIF
-        IF IF_ACMPEQ% = 1 THEN
+        IF STACK_POP1$ = STACK_POP2$ THEN
             CODE_OFFSET% = Offset% + U2%
         ELSE
             CODE_OFFSET% = Offset% + 3
+        ENDIF
+        IF STACK_TYPE1@ = %TYPE_REF THEN
+            IF STACK_POP1% > 0 THEN
+                CALL CheckRef(STACK_POP1%)
+                IF REF_USED% = 0 THEN
+                    MFREE(STACK_POP1%)
+                ENDIF
+            ENDIF
+        ENDIF
+        IF STACK_TYPE2@ = %TYPE_REF THEN
+            IF STACK_POP2% > 0 THEN
+                IF STACK_POP2% <> STACK_POP1% THEN
+                    CALL CheckRef(STACK_POP2%)
+                    IF REF_USED% = 0 THEN
+                        MFREE(STACK_POP2%)
+                    ENDIF
+                ENDIF
+            ENDIF
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_IF_ACMPNE THEN
         CALL ReadU(F%, 2)
         CALL StackPopString()
+        STACK_TYPE1@ = STACK_TYPE%
         STACK_POP1% = StackValue%
         STACK_POP1$ = StackValue$
         CALL StackPopString()
+        STACK_TYPE2@ = STACK_TYPE%
         STACK_POP2% = StackValue%
         STACK_POP2$ = StackValue$
-        IF_ACMPNE% = 0
-        IF STACK_POP1% <> STACK_POP2% THEN
-            IF STACK_POP1$ <> STACK_POP2$ THEN
-                IF_ACMPNE% = 1
-            ENDIF
-        ENDIF
-        IF IF_ACMPNE% = 1 THEN
+        IF STACK_POP1$ <> STACK_POP2$ THEN
             CODE_OFFSET% = Offset% + U2%
         ELSE
             CODE_OFFSET% = Offset% + 3
+        ENDIF
+        IF STACK_TYPE1@ = %TYPE_REF THEN
+            IF STACK_POP1% > 0 THEN
+                CALL CheckRef(STACK_POP1%)
+                IF REF_USED% = 0 THEN
+                    MFREE(STACK_POP1%)
+                ENDIF
+            ENDIF
+        ENDIF
+        IF STACK_TYPE2@ = %TYPE_REF THEN
+            IF STACK_POP2% > 0 THEN
+                IF STACK_POP2% <> STACK_POP1% THEN
+                    CALL CheckRef(STACK_POP2%)
+                    IF REF_USED% = 0 THEN
+                        MFREE(STACK_POP2%)
+                    ENDIF
+                ENDIF
+            ENDIF
         ENDIF
     ENDIF
     IF OPCODE% = %OPCODE_GOTO THEN
@@ -224,26 +380,21 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CODE_OFFSET% = Offset% + U2%
     ENDIF
     IF OPCODE% = %OPCODE_IRETURN THEN
-        CALL StackPop()
-        ParentId% = PROCESS_PARENT%[PROCESS_ID%]
-        CALL KillProcess(PROCESS_ID%)
         CODE_OFFSET% = Offset% + 1
         PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
-        IF ParentId% > 0 THEN
-            PROCESS_ID% = ParentId%
-            CALL StackPush(StackValue%, %TYPE_INT)
-            PROCESS_IDLE%[PROCESS_ID%] = 0
-        ENDIF
+        CALL StackPop()
+        CALL KillProcess(PROCESS_ID%, %TYPE_INT, StackValue%)
+    ENDIF
+    IF OPCODE% = %OPCODE_ARETURN THEN
+        CODE_OFFSET% = Offset% + 1
+        PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
+        CALL StackPop()
+        CALL KillProcess(PROCESS_ID%, %TYPE_REF, StackValue%)
     ENDIF
     IF OPCODE% = %OPCODE_RETURN THEN
-        ParentId% = PROCESS_PARENT%[PROCESS_ID%]
-        CALL KillProcess(PROCESS_ID%)
         CODE_OFFSET% = Offset% + 1
         PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
-        IF ParentId% > 0 THEN
-            PROCESS_ID% = ParentId%
-            PROCESS_IDLE%[PROCESS_ID%] = 0
-        ENDIF
+        CALL KillProcess(PROCESS_ID%, %TYPE_NONE, 0)
     ENDIF
     IF OPCODE% = %OPCODE_INVOKE_VIRTUAL THEN
         OPCODE% = %OPCODE_INVOKE_STATIC
@@ -269,13 +420,14 @@ SUB RunCode(F%, MethodIdx%, Offset%)
                 S% = S% + 1
                 Params$ = MID(MethodRef$, S%)
                 L% = LEN(Params$)
+                IsArray% = 0
                 FOR P% = 1 TO L%
                     C$ = MID(Params$, P%, 1)
                     IF C$ = "L" THEN
                         SP% = SINSTR(Params$, ";")
                         IF SP% > 0 THEN
                             ParamCount% = ParamCount% + 1
-                            ParamTypes%[ParamCount%] = %TYPE_REF
+                            ParamTypes@[ParamCount%] = %TYPE_REF
                             P% = SP%
                         ENDIF
                     ELSE
@@ -284,23 +436,23 @@ SUB RunCode(F%, MethodIdx%, Offset%)
                         ENDIF
                         IF C$ <> "[" THEN
                             ParamCount% = ParamCount% + 1
-                            ParamTypes%[ParamCount%] = %TYPE_INT
+                            IF IsArray% = 1 THEN
+                                ParamTypes@[ParamCount%] = %TYPE_REF
+                            ELSE
+                                ParamTypes@[ParamCount%] = %TYPE_INT
+                            ENDIF
+                            IsArray% = 0
+                        ELSE
+                            IsArray% = 1
                         ENDIF
                     ENDIF
                 NEXT
             ENDIF
-            FOR I% = 1 TO ParamCount% STEP -1
-                IF ParamTypes%[I%] = %TYPE_REF THEN
-                    CALL StackPopString()
-                    STR_LEN% = LEN(StackValue$)
-                    STR_LEN% = STR_LEN% + 2
-                    STR_PTR% = MALLOC(STR_LEN%)
-                    MEMCOPY(STRPTR(StackValue$), STR_PTR%, STR_LEN%)
-                    Params%[I%] = STR_PTR%
-                ELSE
-                    CALL StackPop()
-                    Params%[I%] = StackValue%
-                ENDIF
+            FOR I% = 1 TO ParamCount%
+                J% = ParamCount% - I% + 1
+                CALL StackPop()
+                Params%[J%] = StackValue%
+                ParamTypes@[J%] = STACK_TYPE%
             NEXT
             PROCESS_IDLE%[PROCESS_ID%] = 1
             CODE_OFFSET% = Offset% + 3
@@ -310,7 +462,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             FOR I% = 1 TO ParamCount%
                 LocalsIndex% = I% - 1
                 Param% = Params%[I%]
-                ParamType@ = ParamTypes%[I%]
+                ParamType@ = ParamTypes@[I%]
                 CALL LocalSet(LocalsIndex%, Param%, ParamType@)
             NEXT
             PROCESS_ID% = ParentId%
@@ -323,9 +475,48 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             END
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_NEWARRAY THEN
+        CALL ReadU(F%, 1)
+        ArrayType% = U1%
+        CALL StackPop()
+        StackType@ = STACK_TYPE%
+        ArrayLen% = StackValue%
+        IF StackType@ = %TYPE_REF THEN
+            IF ArrayLen% > 0 THEN
+                CALL CheckRef(ArrayLen%)
+                IF REF_USED% = 0 THEN
+                    MFREE(ArrayLen%)
+                ENDIF
+            ENDIF
+        ENDIF
+        IF ArrayLen% < 0 THEN
+            PRINT "Negative array size: " + ArrayLen% + "\r\n"
+            END
+        ENDIF
+        IF ArrayType% <> %ARRAY_TYPE_BYTE THEN
+            PRINT "Unsupported array type: " + ArrayType% + "\r\n"
+            END
+        ENDIF
+        Array$ = ""
+        IF ArrayLen% > 0 THEN
+            Array$ = SPACE(ArrayLen%)
+        ENDIF
+        CALL StackPushString(Array$)
+        CODE_OFFSET% = Offset% + 2
+    ENDIF
     IF OPCODE% = %OPCODE_ARRAYLENGTH THEN
         CALL StackPopString()
+        StackType@ = STACK_TYPE%
+        STR_PTR% = StackValue%
         ArrayLen% = LEN(StackValue$)
+        IF STR_PTR% > 0 THEN
+            IF StackType@ = %TYPE_REF THEN
+                CALL CheckRef(STR_PTR%)
+                IF REF_USED% = 0 THEN
+                    MFREE(STR_PTR%)
+                ENDIF
+            ENDIF
+        ENDIF
         CALL StackPush(ArrayLen%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 1
     ENDIF
@@ -349,6 +540,9 @@ SUB StackPush(Value%, StackType@)
 END SUB
 
 SUB StackPushString(Value$)
+    STACK_PTR% = PROCESS_STACK_PTR%[PROCESS_ID%]
+    STACK_SIZE% = MGET(STACK_PTR%)
+    STACK_SIZE% = STACK_SIZE% + 1
     STR_LEN% = LEN(Value$)
     STR_LEN% = STR_LEN% + 2
     STR_PTR% = MALLOC(STR_LEN%)
@@ -363,25 +557,27 @@ SUB StackPop()
     STACK_OFFSET% = STACK_SIZE% * %STACK_ENTRY_SIZE
     STACK_OFFSET% = STACK_OFFSET% + STACK_PTR%
     STACK_OFFSET% = STACK_OFFSET% + 2 'First word = Stack size
-    STACK_TYPE$ = SPACE(1)
-    STACK_TYPE$ = MGET(STACK_OFFSET%)
-    STACK_TYPE% = ASC(STACK_TYPE$)
+    B$ = CHR(0)
+    B$ = MGET(STACK_OFFSET%)
+    STACK_TYPE% = ASC(B$)
     STACK_OFFSET% = STACK_OFFSET% + 1
     StackValue% = MGET(STACK_OFFSET%)
-    StackValue$ = STR(StackValue%)
     MEMSETW(STACK_SIZE%, STACK_PTR%, 1)
 END SUB
 
 SUB StackPopString()
     CALL StackPop()
     STR_PTR% = StackValue%
-    IF STACK_TYPE% = %TYPE_REF THEN
+    StackType@ = STACK_TYPE%
+    IF StackType@ = %TYPE_REF THEN
         IF STR_PTR% > 0 THEN
             STR_LEN% = MGET(STR_PTR%)
-            StackValue$ = SPACE(STR_LEN%)
+            StackValue$ = ""
+            IF STR_LEN% > 0 THEN
+                StackValue$ = SPACE(STR_LEN%)
+            ENDIF
             STR_LEN% = STR_LEN% + 2
             MEMCOPY(STR_PTR%, STRPTR(StackValue$), STR_LEN%)
-            MFREE(STR_PTR%)
         Else
             StackValue$ = ""
         ENDIF
@@ -394,16 +590,23 @@ SUB LocalSet(Index%, Value%, LocalsType@)
     LOCALS_PTR% = PROCESS_LOCALS_PTR%[PROCESS_ID%]
     LOCALS_OFFSET% = Index% * %LOCALS_ENTRY_SIZE
     LOCALS_OFFSET% = LOCALS_OFFSET% + LOCALS_PTR%
-    LOCALS_TYPE$ = SPACE(1)
-    LOCALS_TYPE$ = MGET(LOCALS_OFFSET%)
-    LOCALS_TYPE% = ASC(LOCALS_TYPE$)
-    IF LOCALS_TYPE% = %TYPE_REF THEN
-        LOCALS_OFFSET% = LOCALS_OFFSET% + 1
-        STR_PTR% = MGET(LOCALS_OFFSET%)
+    B$ = CHR(0)
+    B$ = MGET(LOCALS_OFFSET%)
+    B% = ASC(B$)
+    LocalType@ = B%
+    IF LocalType@ = %TYPE_REF THEN
+        VAL_OFFSET% = LOCALS_OFFSET% + 1
+        STR_PTR% = MGET(VAL_OFFSET%)
         IF STR_PTR% > 0 THEN
-            MFREE(STR_PTR%)
+            IF STR_PTR% <> Value% THEN
+                MEMSETB(%TYPE_INT, LOCALS_OFFSET%, 1)
+                MEMSETW(0, VAL_OFFSET%, 1)
+                CALL CheckRef(STR_PTR%)
+                IF REF_USED% = 0 THEN
+                    MFREE(STR_PTR%)
+                ENDIF
+            ENDIF
         ENDIF
-        LOCALS_OFFSET% = LOCALS_OFFSET% - 1
     ENDIF
     MEMSETB(LocalsType@, LOCALS_OFFSET%, 1)
     LOCALS_OFFSET% = LOCALS_OFFSET% + 1
@@ -431,9 +634,16 @@ SUB LocalGetString(Index%)
     STR_PTR% = LocalValue%
     IF STR_PTR% > 0 THEN
         STR_LEN% = MGET(STR_PTR%)
-        LocalValue$ = SPACE(STR_LEN%)
+        LocalValue$ = ""
+        IF STR_LEN% > 0 THEN
+            LocalValue$ = SPACE(STR_LEN%)
+        ENDIF
         STR_LEN% = STR_LEN% + 2
         MEMCOPY(STR_PTR%, STRPTR(LocalValue$), STR_LEN%)
+        CALL CheckRef(STR_PTR%)
+        IF REF_USED% = 0 THEN
+            MFREE(STR_PTR%)
+        ENDIF
     ELSE
         LocalValue$ = ""
     ENDIF
