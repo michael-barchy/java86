@@ -227,6 +227,15 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL StackPush(STACK_SUB%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 1
     ENDIF
+    IF OPCODE% = %OPCODE_IMUL THEN
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        STACK_SUB% = STACK_POP1% * STACK_POP2%
+        CALL StackPush(STACK_SUB%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_IINC THEN
         CALL ReadU(F%, 1)
         Index% = U1%
@@ -479,23 +488,27 @@ SUB RunCode(F%, MethodIdx%, Offset%)
                     ENDIF
                 NEXT
             ENDIF
-            FOR I% = 1 TO ParamCount%
-                J% = ParamCount% - I% + 1
-                CALL StackPop()
-                Params%[J%] = StackValue%
-                ParamTypes@[J%] = STACK_TYPE%
-            NEXT
+            IF ParamCount% > 0 THEN
+                FOR I% = 1 TO ParamCount%
+                    J% = ParamCount% - I% + 1
+                    CALL StackPop()
+                    Params%[J%] = StackValue%
+                    ParamTypes@[J%] = STACK_TYPE%
+                NEXT
+            ENDIF
             PROCESS_IDLE%[PROCESS_ID%] = 1
             CODE_OFFSET% = Offset% + 3
             PROCESS_CODE_OFFSET%[PROCESS_ID%] = CODE_OFFSET%
             ParentId% = PROCESS_ID%
             CALL NewProcess(ClassName$, MethodRef$, ParentId%)
-            FOR I% = 1 TO ParamCount%
-                LocalsIndex% = I% - 1
-                Param% = Params%[I%]
-                ParamType@ = ParamTypes@[I%]
-                CALL LocalSet(LocalsIndex%, Param%, ParamType@)
-            NEXT
+            IF ParamCount% > 0 THEN
+                FOR I% = 1 TO ParamCount%
+                    LocalsIndex% = I% - 1
+                    Param% = Params%[I%]
+                    ParamType@ = ParamTypes@[I%]
+                    CALL LocalSet(LocalsIndex%, Param%, ParamType@)
+                NEXT
+            ENDIF
             PROCESS_ID% = ParentId%
             CODE_OFFSET% = PROCESS_CODE_OFFSET%[PROCESS_ID%]
         ELSE

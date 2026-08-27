@@ -12,4 +12,6 @@ public class Native {
     public static native void killProcess(int pid);
 
     public static native int[] int86(int interrupt, int[] regs);
+
+    public static native void farmemsetb(int b, int addressHigh, int addressLow, int offset, int count);
 }
