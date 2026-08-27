@@ -55,11 +55,15 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     await zip.archiveFile('build/Hello.class', 'release/HELLO.JAR', { compressionLevel: 0 });
     await zip.archiveFile('build/StringUtils.class', 'release/UTILS.JAR', { compressionLevel: 0 });
     await zip.archiveFile('build/Shell.class', 'release/SHELL.JAR', { compressionLevel: 0 });
+    await zip.archiveFile('build/UI.class', 'release/UI.JAR', { compressionLevel: 0 });
     const demo = new zip.Zip({ compressionLevel: 0 });
     demo.addFile('build/Demo.class');
     demo.addFile('build/Proc1.class');
     demo.addFile('build/Proc2.class');
     await demo.archive('release/DEMO.JAR');
+    const mooui = new zip.Zip({ compressionLevel: 0 });
+    mooui.addFile('build/MooUI.class');
+    await mooui.archive('release/MOOUI.JAR');
 
     // freedos bootdisk
 
@@ -79,19 +83,19 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
 
     // build image
 
-    const applySectors = function applySectors(image, diskSectors, sectorOffset = 0) {
-    const bytsPerSec = diskSectors.bytsPerSec || 512;
+    const applySectors = function (image, diskSectors, sectorOffset = 0) {
+        const bytsPerSec = diskSectors.bytsPerSec || 512;
 
-    for (const region of diskSectors.zeroRegions) {
-        const start = (sectorOffset + region.i) * bytsPerSec;
-        const length = region.count * bytsPerSec;
-        image.fill(0, start, start + length);
-    }
+        for (const region of diskSectors.zeroRegions) {
+            const start = (sectorOffset + region.i) * bytsPerSec;
+            const length = region.count * bytsPerSec;
+            image.fill(0, start, start + length);
+        }
 
-    for (const sec of diskSectors.dataSectors) {
-        const start = (sectorOffset + sec.i) * bytsPerSec;
-        image.set(sec.data, start);
-    }
+        for (const sec of diskSectors.dataSectors) {
+            const start = (sectorOffset + sec.i) * bytsPerSec;
+            image.set(sec.data, start);
+        }
     }
 
     const SECTOR_SIZE = 512;
@@ -100,21 +104,21 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     const PARTITION_SECTORS = TOTAL_SECTORS - PARTITION_START;
 
     const partition = {
-    active: true,
-    type: 0x06,
-    relativeSectors: PARTITION_START,
-    totalSectors: PARTITION_SECTORS,
+        active: true,
+        type: 0x06,
+        relativeSectors: PARTITION_START,
+        totalSectors: PARTITION_SECTORS,
     };
 
     const mbrSectors = fdisk([partition]);
 
     const partitionCapacityBytes = PARTITION_SECTORS * SECTOR_SIZE;
     const vfatResult = mkfsvfat(partitionCapacityBytes, {
-    type: 'FAT16'
+        type: 'FAT16'
     });
 
     if (!vfatResult) {
-    throw new Error("Impossible d'initialiser le système de fichiers FAT16.");
+        throw new Error("Impossible d'initialiser le système de fichiers FAT16.");
     }
 
     const diskImage = new Uint8Array(TOTAL_SECTORS * SECTOR_SIZE);
@@ -175,7 +179,9 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
         'HELLO.JAR',
         'UTILS.JAR',
         'SHELL.JAR',
-        'DEMO.JAR'
+        'DEMO.JAR',
+        'UI.JAR',
+        'MOOUI.JAR'
     ];
 
     jarFiles.forEach(file => {

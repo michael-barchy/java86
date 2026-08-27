@@ -1,0 +1,5 @@
+@ECHO OFF
+C:
+CD \
+JAVA -classpath NATIVE.JAR;UTILS.JAR;UI.JAR;MOOUI.JAR MooUI
+ECHO Press CTRL+C to exit
