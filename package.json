@@ -2,10 +2,13 @@
   "scripts": {
     "build": "node build.mjs",
     "start": "node shell.mjs",
-    "start:demo": "node demo.mjs"
+    "start:demo": "node demo.mjs",
+    "start:mooui": "node mooui.mjs",
+    "simulator": "npx ws --spa simulator.html"
   },
   "dependencies": {
     "libmount": "^0.6.0",
+    "local-web-server": "^5.4.0",
     "node-fetch": "^3.3.2",
     "v86": "^0.5.424",
     "zip-lib": "^1.4.0"
