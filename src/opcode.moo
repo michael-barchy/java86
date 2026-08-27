@@ -125,6 +125,38 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_IASTORE THEN
+        CALL StackPop()
+        VALUE% = StackValue%
+        CALL StackPop()
+        Index% = StackValue%
+        CALL StackPop()
+        StackType@ = STACK_TYPE%
+        L% = MGET(StackValue%)
+        E% = L% - 1
+        IF Index% > E% THEN
+            PRINT "Array index out of bounds: " + Index% + "\r\n"
+            END
+        ENDIF
+        ARR_PTR% = StackValue%
+        IF ARR_PTR% = 0 THEN
+            PRINT "Null pointer exception\r\n"
+            END
+        ENDIF
+        ARR_OFFSET% = Index% * 2
+        ARR_OFFSET% = ARR_OFFSET% + ARR_PTR%
+        ARR_OFFSET% = ARR_OFFSET% + 2
+        MEMSETW(VALUE%, ARR_OFFSET%, 1)
+        IF StackType@ = %TYPE_REF THEN
+            IF STR_PTR% > 0 THEN
+                CALL CheckRef(ARR_PTR%)
+                IF REF_USED% = 0 THEN
+                    MFREE(ARR_PTR%)
+                ENDIF
+            ENDIF
+        ENDIF
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_BASTORE THEN
         CALL StackPop()
         VALUE@ = StackValue%
@@ -138,7 +170,6 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             PRINT "Array index out of bounds: " + Index% + "\r\n"
             END
         ENDIF
-        StrSize% = L% + 2
         STR_PTR% = StackValue%
         IF STR_PTR% = 0 THEN
             PRINT "Null pointer exception\r\n"
@@ -493,15 +524,32 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             PRINT "Negative array size: " + ArrayLen% + "\r\n"
             END
         ENDIF
-        IF ArrayType% <> %ARRAY_TYPE_BYTE THEN
+        ArrayTypeSupported% = 0
+        IF ArrayType% = %ARRAY_TYPE_BYTE THEN
+            ArrayTypeSupported% = 1
+        ENDIF
+        IF ArrayType% = %ARRAY_TYPE_INT THEN
+            ArrayTypeSupported% = 1
+        ENDIF
+        IF ArrayTypeSupported% = 0 THEN
             PRINT "Unsupported array type: " + ArrayType% + "\r\n"
             END
         ENDIF
         Array$ = ""
         IF ArrayLen% > 0 THEN
-            Array$ = SPACE(ArrayLen%)
+            IF ArrayType% = %ARRAY_TYPE_BYTE THEN
+                Array$ = SPACE(ArrayLen%)
+                CALL StackPushString(Array$)
+            ENDIF
+            IF ArrayType% = %ARRAY_TYPE_INT THEN
+                ArraySize% = ArrayLen% * 2
+                ArraySize% = ArraySize% + 2
+                Array% = MALLOC(ArraySize%)
+                MEMSETB(0, Array%, ArraySize%)
+                MEMSETW(ArrayLen%, Array%, 1)
+                CALL StackPush(Array%, %TYPE_REF)
+            ENDIF
         ENDIF
-        CALL StackPushString(Array$)
         CODE_OFFSET% = Offset% + 2
     ENDIF
     IF OPCODE% = %OPCODE_ARRAYLENGTH THEN

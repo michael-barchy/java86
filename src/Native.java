@@ -10,4 +10,6 @@ public class Native {
     public static native int newProcess(String className);
 
     public static native void killProcess(int pid);
+
+    public static native int[] int86(int interrupt, int[] regs);
 }

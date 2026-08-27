@@ -55,6 +55,22 @@ SUB InvokeNative(MethodRef$, Offset%)
         CALL KillProcess(StackValue%, %TYPE_NONE, 0)
         CODE_OFFSET% = Offset% + 3
     ENDIF
+    IF MethodRef$ = "Native.int86(I[I)[I" THEN
+        CALL StackPop()
+        REGS_PTR% = StackValue%
+        REGS_SIZE% = MGET(REGS_PTR%)
+        IF REGS_SIZE% <> 8 THEN
+            PRINT "Invalid regs size\r\n"
+            END
+        ENDIF
+        REGS_OFFSET% = REGS_PTR% + 2
+        reg^ = MGET(REGS_OFFSET%)
+        CALL StackPop()
+        INTERRUPT% = StackValue%
+        INT86(INTERRUPT%, reg^, reg^)
+        CALL StackPush(REGS_PTR%, %TYPE_REF)
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
     IF CODE_OFFSET% = -1 THEN
         PRINT "Unknown native method: " + MethodRef$ + "\r\n"
         END
