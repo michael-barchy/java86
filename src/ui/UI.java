@@ -22,6 +22,20 @@ public class UI {
         Native.farmemsetb(color, 0xa0, 0x00, offset, 1);
     }
 
+    public static int getPixel(int x, int y) {
+        if (x >= 320) {
+            return 0;
+        }
+
+        if (y >= 200) {
+            return 0;
+        }
+
+        int offset = x + (y * 320);
+
+        return Native.farmemgetb(0xa0, 0x00, offset);
+    }
+
     public static void hLine(int x, int y, int w, int color) {
         if (x >= 320) {
             x = 319;

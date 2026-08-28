@@ -12,11 +12,33 @@ public class Mouse {
 
         Native.print("Click anywhere to quit\r\n");
 
+        int oldX = 9999;
+        int oldY = 9999;
+        int oldColor = 999;
+
         while (true) {
             if (0 != button()) {
                 break;
             }
-            UI.putPixel(x(), y(), 15);
+
+            int newX = x();
+            int newY = y();
+
+            if (newX == oldX) {
+                if (newY == oldY) {
+                    continue;
+                }
+            }
+
+            if (oldColor != 999) {
+                UI.putPixel(oldX, oldY, oldColor);
+            }
+            oldColor = UI.getPixel(newX, newY);
+
+            UI.putPixel(newX, newY, 15);
+
+            oldX = newX;
+            oldY = newY;
         }
     }
 

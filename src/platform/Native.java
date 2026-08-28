@@ -16,4 +16,6 @@ public class Native {
     public static native int[] int86(int interrupt, int[] regs);
 
     public static native void farmemsetb(int b, int addressHigh, int addressLow, int offset, int count);
+
+    public static native int farmemgetb(int addressHigh, int addressLow, int offset);
 }

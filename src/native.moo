@@ -107,8 +107,29 @@ SUB InvokeNative(MethodRef$, Offset%)
         PTR& = PTR& + PTR_LOW%
         CALL StackPop()
         B@ = StackValue%
-        'PRINT MethodRef$ + ", " + PTR& + ", " + PTR_OFFSET% + ", " + PTR_OFFSET& + ", " + B@ + ", " + COUNT% + "\r\n"
         FARMEMSETB(B@, PTR&, PTR_OFFSET&, COUNT%)
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "farmemgetb(III)I" THEN
+        CALL StackPop()
+        PTR_OFFSET% = StackValue%
+        PTR_OFFSET& = 32768
+        IF PTR_OFFSET% < 0 THEN
+            PTR_OFFSET& = PTR_OFFSET& + PTR_OFFSET%
+            PTR_OFFSET& = PTR_OFFSET& + 32768
+        ELSE
+            PTR_OFFSET& = PTR_OFFSET%
+        ENDIF
+        CALL StackPop()
+        PTR_LOW% = StackValue%
+        CALL StackPop()
+        PTR_HIGH% = StackValue%
+        PTR& = PTR_HIGH% * 256
+        PTR& = PTR& + PTR_LOW%
+        B$ = CHR(0)
+        B$ = MGET(PTR_OFFSET&, PTR&)
+        B% = ASC(B$)
+        CALL StackPush(B%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 3
     ENDIF
     IF CODE_OFFSET% = -1 THEN
