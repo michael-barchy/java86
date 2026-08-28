@@ -2,9 +2,9 @@ import { mount, fdisk, mkfsvfat } from 'https://cdn.jsdelivr.net/npm/libmount@0.
 import { V86 } from 'https://cdn.jsdelivr.net/npm/v86';
 
 const binFiles = {
-    'freedos722.img': 'https://proxy.corsfix.com/?https://i.copy.sh/freedos722.img',
-    'seabios.bin': 'https://proxy.corsfix.com/?https://copy.sh/v86/bios/seabios.bin',
-    'vgabios.bin': 'https://proxy.corsfix.com/?https://copy.sh/v86/bios/vgabios.bin'
+    'freedos722.img': 'simulator/freedos722.img',
+    'seabios.bin': 'simulator/seabios.bin',
+    'vgabios.bin': 'simulator/vgabios.bin'
 }
 
 for (const binFile of Object.keys(binFiles)) {
