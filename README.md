@@ -69,3 +69,7 @@ public class Hello {
     }
 }
 ```
+
+## Testing
+
+Try the [Simulator](https://michael-barchy.github.io/java86/simulator)
