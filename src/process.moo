@@ -10,7 +10,7 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
         PRINT "Out of process space\r\n"
         END
     ENDIF
-    TargetFile$ = ClassName$ + ".class" '@todo - replace '.' with '/'
+    TargetFile$ = ClassName$ + ".class"
     FOR JarIdx% = 1 TO JAR_COUNT%
         CALL GetJarFile(JarIdx%)
         CALL ZipFind(JarIdx%, TargetFile$)

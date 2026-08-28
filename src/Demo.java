@@ -1,3 +1,5 @@
+import platform.Native;
+
 public class Demo {
     public static void main(String[] args) {
         Native.print("Printing using DOS interrupt: ");

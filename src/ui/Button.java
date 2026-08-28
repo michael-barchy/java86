@@ -1,3 +1,5 @@
+package ui;
+
 public class Button {
     public static void drawButton(int x, int y, int w, int h) {
         UI.fillRect(x, y, w, h, 7);

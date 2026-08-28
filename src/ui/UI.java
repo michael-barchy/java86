@@ -1,3 +1,7 @@
+package ui;
+
+import platform.Native;
+
 public class UI {
     public static void create() {
         int[] regs = { 0x0013, 0, 0, 0, 0, 0, 0, 0 };

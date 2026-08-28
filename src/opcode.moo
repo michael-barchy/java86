@@ -65,6 +65,35 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = Offset% + 1
         ENDIF
     ENDIF
+    IF OPCODE% = %OPCODE_IALOAD THEN
+        CALL StackPop()
+        Index% = StackValue%
+        CALL StackPop()
+        StackType@ = STACK_TYPE%
+        ARR_PTR% = StackValue%
+        IF ARR_PTR% = 0 THEN
+            PRINT "Null pointer exception\r\n"
+            END
+        ENDIF
+        L% = MGET(ARR_PTR%)
+        E% = L% - 1
+        IF Index% > E% THEN
+            PRINT "Array index out of bounds: " + Index% + "\r\n"
+            END
+        ENDIF
+        ARR_OFFSET% = Index% * 2
+        ARR_OFFSET% = ARR_OFFSET% + ARR_PTR%
+        ARR_OFFSET% = ARR_OFFSET% + 2
+        I% = MGET(ARR_OFFSET%)
+        CALL StackPush(I%, %TYPE_INT)
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                MFREE(STR_PTR%)
+            ENDIF
+        ENDIF
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_BALOAD THEN
         CALL StackPop()
         Index% = StackValue%
@@ -453,7 +482,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         MethodName$ = CP_ENTRY$
         CALL GetConstantPoolEntry(CP_IDX%, DESCRIPTOR%, F%)
         MethodRef$ = MethodName$ + CP_ENTRY$
-        IF ClassName$ <> "Native" THEN
+        IF ClassName$ <> "platform/Native" THEN
             S% = SINSTR(MethodRef$, "(")
             ParamCount% = 0
             IF S% > 0 THEN
@@ -512,7 +541,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             PROCESS_ID% = ParentId%
             CODE_OFFSET% = PROCESS_CODE_OFFSET%[PROCESS_ID%]
         ELSE
-            MethodRef$ = ClassName$ + "." + MethodRef$
+            'MethodRef$ = ClassName$ + "." + MethodRef$
             CALL InvokeNative(MethodRef$, Offset%)
         ENDIF
         IF CODE_OFFSET% = -1 THEN

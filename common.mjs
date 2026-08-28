@@ -47,24 +47,32 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     const sp = 'darwin' === platform() ? ':' : ';';
     const cp = `./bin/janino-3.1.9.jar${sp}./bin/commons-compiler-3.1.9.jar`;
     const javac = `java -classpath "${cp}" org.codehaus.commons.compiler.samples.CompilerDemo`;
-    execSync(`${javac} -d build src/Native.java`);
+    execSync(`${javac} -d build src/platform/Native.java`);
     execSync(`${javac} -d build -classpath build src/Hello.java`);
-    execSync(`${javac} -d build -classpath build src/StringUtils.java`);
-    execSync(`${javac} -d build -classpath build src/UI.java`);
+    execSync(`${javac} -d build -classpath build src/util/StringUtils.java`);
+    execSync(`${javac} -d build -classpath build src/ui/*.java`);
+    execSync(`${javac} -d build -classpath build src/driver/*.java`);
     execSync(`${javac} -d build -classpath build src/*.java`);
-    await zip.archiveFile('build/Native.class', 'release/NATIVE.JAR', { compressionLevel: 0 });
+    const native = new zip.Zip({ compressionLevel: 0 });
+    native.addFile('build/platform/Native.class', 'platform/Native.class');
+    await native.archive('release/NATIVE.JAR');
+    const utils = new zip.Zip({ compressionLevel: 0 });
+    utils.addFile('build/util/StringUtils.class', 'util/StringUtils.class');
+    await utils.archive('release/UTILS.JAR');
+    const driver = new zip.Zip({ compressionLevel: 0 });
+    driver.addFile('build/driver/Mouse.class', 'driver/Mouse.class');
+    await driver.archive('release/DRIVER.JAR');
+    const ui = new zip.Zip({ compressionLevel: 0 });
+    ui.addFile('build/ui/UI.class', 'ui/UI.class');
+    ui.addFile('build/ui/Button.class', 'ui/Button.class');
+    await ui.archive('release/UI.JAR');
     await zip.archiveFile('build/Hello.class', 'release/HELLO.JAR', { compressionLevel: 0 });
-    await zip.archiveFile('build/StringUtils.class', 'release/UTILS.JAR', { compressionLevel: 0 });
     await zip.archiveFile('build/Shell.class', 'release/SHELL.JAR', { compressionLevel: 0 });
     const demo = new zip.Zip({ compressionLevel: 0 });
     demo.addFile('build/Demo.class');
     demo.addFile('build/Proc1.class');
     demo.addFile('build/Proc2.class');
     await demo.archive('release/DEMO.JAR');
-    const ui = new zip.Zip({ compressionLevel: 0 });
-    ui.addFile('build/UI.class');
-    ui.addFile('build/Button.class');
-    await ui.archive('release/UI.JAR');
     const mooui = new zip.Zip({ compressionLevel: 0 });
     mooui.addFile('build/MooUI.class');
     await mooui.archive('release/MOOUI.JAR');
@@ -138,7 +146,8 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
         'MOONROCK.ALB': 'https://github.com/DosWorld/moonrock/raw/refs/heads/master/MOONROCK.ALB',
         'MOONROCK.PTR' : 'https://github.com/DosWorld/moonrock/raw/refs/heads/master/MOONROCK.PTR',
         'MRLINK.COM': 'https://github.com/DosWorld/moonrock/raw/refs/heads/master/MRLINK.COM',
-        'ASM.EXE': 'https://sourceforge.net/projects/microsoft-macro-assembler-v5-0/files/8086/MASM.EXE/download'
+        'ASM.EXE': 'https://sourceforge.net/projects/microsoft-macro-assembler-v5-0/files/8086/MASM.EXE/download',
+        'CTMOUSE.EXE': 'https://github.com/davidebreso/ctmouse/raw/refs/heads/main/ctmouse.exe'
     };
 
     const buildNames = Object.keys(buildFiles);
@@ -180,6 +189,7 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
 
     const jarFiles = [
         'NATIVE.JAR',
+        'DRIVER.JAR',
         'HELLO.JAR',
         'UTILS.JAR',
         'SHELL.JAR',

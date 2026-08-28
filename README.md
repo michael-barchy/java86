@@ -28,7 +28,7 @@ Java86 works like the standard Java VM with many limitations:
 - Jar files are limited to 8.3 file names (e.g. CLASSES.JAR)
 - The Jar files must be uncompressed (they are simple uncompressed Zip files, use `zip -0`)
 - Java86 does not support interfaces, fields or objects (everything is static)
-- All native calls are made on the "Native" class (e.g. Native.print)
+- All native calls are made on the "platform/Native" class (e.g. Native.print)
 
 Example:
 
@@ -61,6 +61,8 @@ npm run start:demo
 Here is a really simple "Hello world" examples
 
 ```java
+import platform.Native;
+
 public class Hello {
     public static void main(String[] args) {
         Native.print("Hello, World!\r\n");

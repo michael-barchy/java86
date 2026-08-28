@@ -1,3 +1,7 @@
+package util;
+
+import platform.Native;
+
 public class StringUtils {
     public static boolean equals(String s1, String s2) {
         byte[] b1 = Native.getBytes(s1);

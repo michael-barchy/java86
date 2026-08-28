@@ -1,3 +1,6 @@
+import platform.Native;
+import util.StringUtils;
+
 public class Shell {
     public static void main(String[] args) {
         Native.print("Welcome !\r\n");

@@ -18,9 +18,6 @@ console.debug(binFiles);
 
 const bootBuffer = binFiles['freedos722.img'];
 const bootDisk = mount(bootBuffer, { type: 'fat12' });
-console.debug(bootDisk);
-console.debug(bootDisk.getFileSystem());
-console.debug(bootDisk.getFileSystem().getRoot());
 const bootFS = bootDisk.getFileSystem().getRoot();
 
 const script = (document.currentScript ?? document.getElementById('simulator'));
@@ -87,8 +84,6 @@ const disk = mount(diskImage, { partition });
 
 const fileSystem = disk.getFileSystem().getRoot();
 
-console.debug(fileSystem);
-
 for (const f of bat) {
     const batData = await (await fetch(f)).arrayBuffer();
     const batFile = fileSystem.makeFile(f, { size: 0 });
@@ -97,6 +92,7 @@ for (const f of bat) {
 
 // release files
 const releaseFiles = [
+    'VBMOUSE.EXE',
     'JAVA.COM',
     'NATIVE.JAR',
     'HELLO.JAR',
@@ -104,6 +100,7 @@ const releaseFiles = [
     'SHELL.JAR',
     'DEMO.JAR',
     'UI.JAR',
+    'DRIVER.JAR',
     'MOOUI.JAR'
 ];
 
@@ -113,6 +110,9 @@ for (const file of releaseFiles) {
     const newFile = fileSystem.makeFile(file, { size: 0 });
     newFile.open().writeData(new Uint8Array(fileData));
 }
+
+const newFile = fileSystem.makeFile('CTMOUSE.EXE', { size: 0 });
+newFile.open().writeData(new Uint8Array(binFiles['ctmouse.exe']));
 
 new V86({
     screen_container: document.getElementById('screen'),
