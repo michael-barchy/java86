@@ -1,4 +1,5 @@
 DIM B$[1]
+DIM O$[1]
 DIM U4&
 DIM U2%
 DIM U1%

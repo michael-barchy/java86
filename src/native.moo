@@ -110,6 +110,74 @@ SUB InvokeNative(MethodRef$, Offset%)
         FARMEMSETB(B@, PTR&, PTR_OFFSET&, COUNT%)
         CODE_OFFSET% = Offset% + 3
     ENDIF
+    IF MethodRef$ = "farmemsetb([BIIIIIZ)V" THEN
+        CALL StackPop()
+        MERGE% = StackValue%
+        CALL StackPop()
+        WIDTH% = StackValue%
+        CALL StackPop()
+        COUNT% = StackValue%
+        CALL StackPop()
+        PTR_OFFSET% = StackValue%
+        PTR_OFFSET& = 32768
+        IF PTR_OFFSET% < 0 THEN
+            PTR_OFFSET& = PTR_OFFSET& + PTR_OFFSET%
+            PTR_OFFSET& = PTR_OFFSET& + 32768
+        ELSE
+            PTR_OFFSET& = PTR_OFFSET%
+        ENDIF
+        CALL StackPop()
+        PTR_LOW% = StackValue%
+        CALL StackPop()
+        PTR_HIGH% = StackValue%
+        PTR& = PTR_HIGH% * 256
+        PTR& = PTR& + PTR_LOW%
+        CALL StackPop()
+        SRC_PTR% = StackValue%
+        SRC_LEN% = MGET(SRC_PTR%)
+        IF COUNT% = 0 THEN
+            COUNT% = SRC_LEN%
+        ENDIF
+        IF WIDTH% > 0 THEN
+            IF MERGE% <> 0 THEN
+                MASK% = MALLOC(COUNT%)
+            ENDIF
+            SRC_HEIGHT% = SRC_LEN% / COUNT%
+            FOR H% = 1 TO SRC_HEIGHT%
+                SRC_OFFSET% = H% - 1
+                SRC_OFFSET% = SRC_OFFSET% * COUNT%
+                SRC_OFFSET% = SRC_OFFSET% + SRC_PTR%
+                SRC_OFFSET% = SRC_OFFSET% + 2
+                H_OFFSET& = H% - 1
+                H_OFFSET& = H_OFFSET& * WIDTH%
+                H_OFFSET& = H_OFFSET& + PTR_OFFSET&
+                IF MERGE% <> 0 THEN
+                    MEMFARTONEAR(PTR&, H_OFFSET&, MASK%, COUNT%)
+                    FOR X% = 1 TO COUNT%
+                        C% = X% - 1
+                        C% = C% + SRC_OFFSET%
+                        B$ = CHR(0)
+                        B$ = MGET(C%)
+                        B% = ASC(B$)
+                        B@ = B%
+                        IF B@ <> -1 THEN
+                            C% = X% - 1
+                            C% = C% + MASK%
+                            MEMSETB(B@, C%, 1)
+                        ENDIF
+                    NEXT
+                    MEMNEARTOFAR(MASK%, PTR&, H_OFFSET&, COUNT%)
+                ELSE
+                    MEMNEARTOFAR(SRC_OFFSET%, PTR&, H_OFFSET&, COUNT%)
+                ENDIF
+            NEXT
+        ELSE
+            SRC_PTR% = SRC_PTR% + 2
+            SRC_PTR% = SRC_PTR% + SRC_OFFSET%
+            MEMNEARTOFAR(SRC_PTR%, PTR&, PTR_OFFSET&, COUNT%)
+        ENDIF
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
     IF MethodRef$ = "farmemgetb(III)I" THEN
         CALL StackPop()
         PTR_OFFSET% = StackValue%
@@ -130,6 +198,51 @@ SUB InvokeNative(MethodRef$, Offset%)
         B$ = MGET(PTR_OFFSET&, PTR&)
         B% = ASC(B$)
         CALL StackPush(B%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "farmemgetb([BIIIII)V" THEN
+        CALL StackPop()
+        WIDTH% = StackValue%
+        CALL StackPop()
+        COUNT% = StackValue%
+        CALL StackPop()
+        PTR_OFFSET% = StackValue%
+        PTR_OFFSET& = 32768
+        IF PTR_OFFSET% < 0 THEN
+            PTR_OFFSET& = PTR_OFFSET& + PTR_OFFSET%
+            PTR_OFFSET& = PTR_OFFSET& + 32768
+        ELSE
+            PTR_OFFSET& = PTR_OFFSET%
+        ENDIF
+        CALL StackPop()
+        PTR_LOW% = StackValue%
+        CALL StackPop()
+        PTR_HIGH% = StackValue%
+        PTR& = PTR_HIGH% * 256
+        PTR& = PTR& + PTR_LOW%
+        CALL StackPop()
+        SRC_PTR% = StackValue%
+        SRC_LEN% = MGET(SRC_PTR%)
+        IF COUNT% = 0 THEN
+            COUNT% = SRC_LEN%
+        ENDIF
+        IF WIDTH% > 0 THEN
+            SRC_HEIGHT% = SRC_LEN% / COUNT%
+            FOR H% = 1 TO SRC_HEIGHT%
+                SRC_OFFSET% = H% - 1
+                SRC_OFFSET% = SRC_OFFSET% * COUNT%
+                SRC_OFFSET% = SRC_OFFSET% + SRC_PTR%
+                SRC_OFFSET% = SRC_OFFSET% + 2
+                H_OFFSET& = H% - 1
+                H_OFFSET& = H_OFFSET& * WIDTH%
+                H_OFFSET& = H_OFFSET& + PTR_OFFSET&
+                MEMFARTONEAR(PTR&, H_OFFSET&, SRC_OFFSET%, COUNT%)
+            NEXT
+        ELSE
+            SRC_PTR% = SRC_PTR% + 2
+            SRC_PTR% = SRC_PTR% + SRC_OFFSET%
+            MEMFARTONEAR(PTR&, PTR_OFFSET&, SRC_PTR%, COUNT%)
+        ENDIF
         CODE_OFFSET% = Offset% + 3
     ENDIF
     IF CODE_OFFSET% = -1 THEN

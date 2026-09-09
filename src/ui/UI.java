@@ -54,20 +54,25 @@ public class UI {
     }
 
     public static void vLine(int x, int y, int h, int color) {
-        if (x >= 320) {
+        int screenWidth = 320;
+
+        if (x >= screenWidth) {
             return;
         }
 
         int y2 = y + h;
-        if (y2 >= 200) {
-            y2 = 199;
+        if (y2 >= screenWidth) {
+            y2 = screenWidth - 1;
         }
 
-        for (int y1 = y; y1 < y2; y1++) {
-            int offset = x + (y1 * 320);
-
-            Native.farmemsetb(color, 0xa0, 0x00, offset, 1);
+        h = y2 - y;
+        byte[] line = new byte[h];
+        for (int i = 0; i < h; i++) {
+            line[i] = (byte) color;
         }
+
+        int offset = x + (y * screenWidth);
+        Native.farmemsetb(line, 0xa0, 0x00, offset, 1, screenWidth, false);
     }
 
     public static void fillRect(int x, int y, int w, int h, int color) {
