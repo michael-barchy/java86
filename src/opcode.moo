@@ -279,6 +279,12 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL StackPush(STACK_DIV%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 1
     ENDIF
+    IF OPCODE% = %OPCODE_INEG THEN
+        CALL StackPop()
+        STACK_POP% = StackValue% * -1
+        CALL StackPush(STACK_POP%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_IINC THEN
         CALL ReadU(F%, 1)
         Index% = U1%

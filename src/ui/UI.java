@@ -75,6 +75,50 @@ public class UI {
         Native.farmemsetb(line, 0xa0, 0x00, offset, 1, screenWidth, false);
     }
 
+    public static void drawLine(int x1, int y1, int x2, int y2, int color) {
+        int screenWidth = 320;
+        int screenHeight = 200;
+
+        int dx = x2 - x1;
+        int sx = 1;
+        if (dx < 0) {
+            dx = -dx;
+            sx = -1;
+        }
+
+        int dy = y2 - y1;
+        int sy = 1;
+        if (dy < 0) {
+            dy = -dy;
+            sy = -1;
+        }
+
+        int err = dx - dy;
+
+        while (true) {
+            if (x1 >= 0 && x1 < screenWidth && y1 >= 0 && y1 < screenHeight) {
+                int offset = (y1 * screenWidth) + x1;
+                Native.farmemsetb(color, 0xa0, 0x00, offset, 1);
+            }
+
+            if (x1 == x2 && y1 == y2) {
+                break;
+            }
+
+            int e2 = err * 2;
+
+            if (e2 > -dy) {
+                err = err - dy;
+                x1 = x1 + sx;
+            }
+
+            if (e2 < dx) {
+                err = err + dx;
+                y1 = y1 + sy;
+            }
+        }
+    }
+
     public static void fillRect(int x, int y, int w, int h, int color) {
         if (x >= 320) {
             x = 319;

@@ -10,6 +10,8 @@ public class MooUI {
         }
         UI.fillRect(50, 50, 100, 100, 4);
         UI.drawRect(50, 50, 100, 100, 15);
+        UI.drawLine(50, 50, 149, 149, 15);
+        UI.drawLine(50, 149, 149, 50, 15);
         Button.draw(160, 160, 100, 30);
         Native.newProcess("driver/Mouse");
     }
