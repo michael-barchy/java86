@@ -9,8 +9,6 @@ public class Mouse {
             return;
         }
 
-        Native.print("Click anywhere to quit\r\n");
-
         int oldX = 9999;
         int oldY = 9999;
 
@@ -33,10 +31,6 @@ public class Mouse {
         };
 
         while (true) {
-            if (0 != button()) {
-                break;
-            }
-
             int newX = x();
             int newY = y();
 

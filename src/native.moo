@@ -46,8 +46,9 @@ SUB InvokeNative(MethodRef$, Offset%)
             ENDIF
         ENDIF
         CALL NewProcess(StackValue$, "main([Ljava/lang/String;)V", 0)
+        NewProcessId% = PROCESS_ID%
         PROCESS_ID% = ParentId%
-        CALL StackPush(PROCESS_ID%, %TYPE_INT)
+        CALL StackPush(NewProcessId%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 3
     ENDIF
     IF MethodRef$ = "killProcess(I)V" THEN

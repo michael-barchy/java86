@@ -8,6 +8,11 @@ public class UI {
         Native.int86(0x10, regs);
     }
 
+    public static void destroy() {
+        int[] regs = { 0x0003, 0, 0, 0, 0, 0, 0, 0 };
+        Native.int86(0x10, regs);
+    }
+
     public static void putPixel(int x, int y, int color) {
         if (x >= 320) {
             return;
