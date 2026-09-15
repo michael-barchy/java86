@@ -253,7 +253,7 @@ SUB SafeMFree(PTR_TO_FREE%)
         EXIT SUB
     ENDIF
     IF PTR_TO_FREE% = LAST_FREE_PTR% THEN
-        EXIT SUB
+        'EXIT SUB
     ENDIF
     MFREE(PTR_TO_FREE%) '
     LAST_FREE_PTR% = PTR_TO_FREE%

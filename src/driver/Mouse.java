@@ -116,4 +116,12 @@ public class Mouse {
         int offsetX = x + (y * screenWidth);
         Native.farmemgetb(mask, 0xa0, 0x00, offsetX, maskWidth, screenWidth);
     }
+
+    public static boolean pressed(int button) {
+        if (0 == button() && 0 != button) {
+            return true;
+        }
+
+        return false;
+    }
 }
