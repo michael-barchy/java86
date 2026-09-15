@@ -55,6 +55,8 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
             EXIT SUB
         ENDIF
     NEXT
+    PRINT TargetFile$ + " not found in classpath\r\n"
+    END
 END SUB
 
 SUB KillProcess(PID%, ReturnType@, ReturnValue%)
@@ -93,7 +95,7 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
                 IF KeepStack% = 0 THEN
                     IF STACK_REF% > 0 THEN
                         MEMSETW(0, STACK_OFFSET%, 1)
-                        MFREE(STACK_REF%)
+                        CALL SafeMFree(STACK_REF%)
                     ENDIF
                 ELSE
                     STACK_OFFSET% = STACK_OFFSET% - 1
@@ -103,7 +105,7 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
         NEXT
     ENDIF
     IF STACK_PTR% > 0 THEN
-        MFREE(STACK_PTR%)
+        CALL SafeMFree(STACK_PTR%)
         PROCESS_STACK_PTR%[PID%] = 0
     ENDIF
 
@@ -134,7 +136,7 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
             IF KeepLocals% = 0 THEN
                 IF LOCALS_REF% > 0 THEN
                     MEMSETW(0, LOCALS_OFFSET%, 1)
-                    MFREE(LOCALS_REF%)
+                    CALL SafeMFree(LOCALS_REF%)
                 ENDIF
             ELSE
                 LOCALS_OFFSET% = LOCALS_OFFSET% - 1
@@ -143,7 +145,7 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
         ENDIF
     NEXT
     IF LOCALS_PTR% > 0 THEN
-        MFREE(LOCALS_PTR%)
+        CALL SafeMFree(LOCALS_PTR%)
         PROCESS_LOCALS_PTR%[PID%] = 0
     ENDIF
 

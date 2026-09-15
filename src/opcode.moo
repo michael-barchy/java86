@@ -94,7 +94,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         IF StackType@ = %TYPE_REF THEN
             CALL CheckRef(ARR_PTR%)
             IF REF_USED% = 0 THEN
-                MFREE(ARR_PTR%)
+                CALL SafeMFree(ARR_PTR%)
             ENDIF
         ENDIF
         CODE_OFFSET% = Offset% + 1
@@ -124,7 +124,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         IF StackType@ = %TYPE_REF THEN
             CALL CheckRef(STR_PTR%)
             IF REF_USED% = 0 THEN
-                MFREE(STR_PTR%)
+                CALL SafeMFree(STR_PTR%)
             ENDIF
         ENDIF
         CODE_OFFSET% = Offset% + 1
@@ -181,14 +181,12 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         ARR_OFFSET% = ARR_OFFSET% + ARR_PTR%
         ARR_OFFSET% = ARR_OFFSET% + 2
         MEMSETW(VALUE%, ARR_OFFSET%, 1)
-        ' IF StackType@ = %TYPE_REF THEN
-        '     IF STR_PTR% > 0 THEN
-        '         CALL CheckRef(ARR_PTR%)
-        '         IF REF_USED% = 0 THEN
-        '             MFREE(ARR_PTR%)
-        '         ENDIF
-        '     ENDIF
-        ' ENDIF
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(ARR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(ARR_PTR%)
+            ENDIF
+        ENDIF
         CODE_OFFSET% = Offset% + 1
     ENDIF
     IF OPCODE% = %OPCODE_BASTORE THEN
@@ -227,11 +225,9 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         StackType@ = STACK_TYPE%
         IF StackType@ = %TYPE_REF THEN
             STR_PTR% = StackValue%
-            IF STR_PTR% > 0 THEN
-                CALL CheckRef(STR_PTR%)
-                IF REF_USED% = 0 THEN
-                    MFREE(STR_PTR%)
-                ENDIF
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STR_PTR%)
             ENDIF
         ENDIF
         CODE_OFFSET% = Offset% + 1
@@ -415,20 +411,16 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = Offset% + 3
         ENDIF
         IF STACK_TYPE1@ = %TYPE_REF THEN
-            IF STACK_POP1% > 0 THEN
-                CALL CheckRef(STACK_POP1%)
-                IF REF_USED% = 0 THEN
-                    MFREE(STACK_POP1%)
-                ENDIF
+            CALL CheckRef(STACK_POP1%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STACK_POP1%)
             ENDIF
         ENDIF
         IF STACK_TYPE2@ = %TYPE_REF THEN
-            IF STACK_POP2% > 0 THEN
-                IF STACK_POP2% <> STACK_POP1% THEN
-                    CALL CheckRef(STACK_POP2%)
-                    IF REF_USED% = 0 THEN
-                        MFREE(STACK_POP2%)
-                    ENDIF
+            IF STACK_POP2% <> STACK_POP1% THEN
+                CALL CheckRef(STACK_POP2%)
+                IF REF_USED% = 0 THEN
+                    CALL SafeMFree(STACK_POP2%)
                 ENDIF
             ENDIF
         ENDIF
@@ -449,20 +441,16 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             CODE_OFFSET% = Offset% + 3
         ENDIF
         IF STACK_TYPE1@ = %TYPE_REF THEN
-            IF STACK_POP1% > 0 THEN
-                CALL CheckRef(STACK_POP1%)
-                IF REF_USED% = 0 THEN
-                    MFREE(STACK_POP1%)
-                ENDIF
+            CALL CheckRef(STACK_POP1%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STACK_POP1%)
             ENDIF
         ENDIF
         IF STACK_TYPE2@ = %TYPE_REF THEN
-            IF STACK_POP2% > 0 THEN
-                IF STACK_POP2% <> STACK_POP1% THEN
-                    CALL CheckRef(STACK_POP2%)
-                    IF REF_USED% = 0 THEN
-                        MFREE(STACK_POP2%)
-                    ENDIF
+            IF STACK_POP2% <> STACK_POP1% THEN
+                CALL CheckRef(STACK_POP2%)
+                IF REF_USED% = 0 THEN
+                    CALL SafeMFree(STACK_POP2%)
                 ENDIF
             ENDIF
         ENDIF
@@ -578,11 +566,9 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         StackType@ = STACK_TYPE%
         ArrayLen% = StackValue%
         IF StackType@ = %TYPE_REF THEN
-            IF ArrayLen% > 0 THEN
-                CALL CheckRef(ArrayLen%)
-                IF REF_USED% = 0 THEN
-                    MFREE(ArrayLen%)
-                ENDIF
+            CALL CheckRef(ArrayLen%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(ArrayLen%)
             ENDIF
         ENDIF
         IF ArrayLen% < 0 THEN
@@ -622,12 +608,10 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         StackType@ = STACK_TYPE%
         STR_PTR% = StackValue%
         ArrayLen% = LEN(StackValue$)
-        IF STR_PTR% > 0 THEN
-            IF StackType@ = %TYPE_REF THEN
-                CALL CheckRef(STR_PTR%)
-                IF REF_USED% = 0 THEN
-                    MFREE(STR_PTR%)
-                ENDIF
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STR_PTR%)
             ENDIF
         ENDIF
         CALL StackPush(ArrayLen%, %TYPE_INT)
@@ -710,14 +694,12 @@ SUB LocalSet(Index%, Value%, LocalsType@)
     IF LocalType@ = %TYPE_REF THEN
         VAL_OFFSET% = LOCALS_OFFSET% + 1
         STR_PTR% = MGET(VAL_OFFSET%)
-        IF STR_PTR% > 0 THEN
-            IF STR_PTR% <> Value% THEN
-                MEMSETB(%TYPE_INT, LOCALS_OFFSET%, 1)
-                MEMSETW(0, VAL_OFFSET%, 1)
-                CALL CheckRef(STR_PTR%)
-                IF REF_USED% = 0 THEN
-                    MFREE(STR_PTR%)
-                ENDIF
+        IF STR_PTR% <> Value% THEN
+            MEMSETB(%TYPE_INT, LOCALS_OFFSET%, 1)
+            MEMSETW(0, VAL_OFFSET%, 1)
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STR_PTR%)
             ENDIF
         ENDIF
     ENDIF
@@ -755,7 +737,7 @@ SUB LocalGetString(Index%)
         MEMCOPY(STR_PTR%, STRPTR(LocalValue$), STR_LEN%)
         CALL CheckRef(STR_PTR%)
         IF REF_USED% = 0 THEN
-            MFREE(STR_PTR%)
+            CALL SafeMFree(STR_PTR%)
         ENDIF
     ELSE
         LocalValue$ = ""

@@ -9,12 +9,10 @@ SUB InvokeNative(MethodRef$, Offset%)
         IF POS% = SLEN% THEN
             'PRINT "Free memory: " + FREEMEM(0) + "\r\n"
         ENDIF
-        IF STR_PTR% > 0 THEN
-            IF StackType@ = %TYPE_REF THEN
-                CALL CheckRef(STR_PTR%)
-                IF REF_USED% = 0 THEN
-                    MFREE(STR_PTR%)
-                ENDIF
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STR_PTR%)
             ENDIF
         ENDIF
         CODE_OFFSET% = Offset% + 3
@@ -37,12 +35,10 @@ SUB InvokeNative(MethodRef$, Offset%)
         StackType@ = STACK_TYPE%
         STR_PTR% = StackValue%
         ParentId% = PROCESS_ID%
-        IF STR_PTR% > 0 THEN
-            IF StackType@ = %TYPE_REF THEN
-                CALL CheckRef(STR_PTR%)
-                IF REF_USED% = 0 THEN
-                    MFREE(STR_PTR%)
-                ENDIF
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STR_PTR%)
             ENDIF
         ENDIF
         CALL NewProcess(StackValue$, "main([Ljava/lang/String;)V", 0)
@@ -250,4 +246,15 @@ SUB InvokeNative(MethodRef$, Offset%)
         PRINT "Unknown native method: " + MethodRef$ + "\r\n"
         END
     ENDIF
+END SUB
+
+SUB SafeMFree(PTR_TO_FREE%)
+    IF PTR_TO_FREE% = 0 THEN
+        EXIT SUB
+    ENDIF
+    IF PTR_TO_FREE% = LAST_FREE_PTR% THEN
+        EXIT SUB
+    ENDIF
+    MFREE(PTR_TO_FREE%) '
+    LAST_FREE_PTR% = PTR_TO_FREE%
 END SUB

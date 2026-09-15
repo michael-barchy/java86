@@ -3,6 +3,12 @@ package util;
 import platform.Native;
 
 public class StringUtils {
+    public static int length(String s) {
+        byte[] b = Native.getBytes(s);
+
+        return b.length;
+    }
+
     public static boolean equals(String s1, String s2) {
         byte[] b1 = Native.getBytes(s1);
         byte[] b2 = Native.getBytes(s2);
@@ -73,5 +79,41 @@ public class StringUtils {
         }
 
         return Native.toString(b2);
+    }
+
+    public static String substring(String s, int start, int len) {
+        byte[] b1 = Native.getBytes(s);
+        byte[] b2 = new byte[len];
+
+        if (start >= b1.length) {
+            return "";
+        }
+
+        if (start + len > b1.length) {
+            len = b1.length - start;
+        }
+
+        for (int i = 0; i < len; i++) {
+            b2[i] = b1[start + i];
+        }
+
+        return Native.toString(b2);
+    }
+
+    public static boolean startsWith(String s1, String s2) {
+        int l1 = length(s1);
+        int l2 = length(s2);
+
+        if (0 == l2) {
+            return true;
+        }
+
+        if (l2 > l1) {
+            return false;
+        }
+
+        String s = substring(s1, 0, l2);
+
+        return equals(s, s2);
     }
 }

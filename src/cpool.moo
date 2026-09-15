@@ -33,9 +33,7 @@ SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
             IF FOUND% = 0 THEN
                 CP_IDX% = I%
                 PTR% = CP_CACHE%[CP_IDX%]
-                IF PTR% > 0 THEN
-                    MFREE(PTR%)
-                ENDIF
+                CALL SafeMFree(PTR%)
                 EXIT FOR
             ENDIF
         NEXT
@@ -45,7 +43,7 @@ SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
         CP_IDX% = 1
         PTR% = CP_CACHE%[CP_IDX%]
         IF PTR% > 0 THEN
-            MFREE(PTR%)
+            CALL SafeMFree(PTR%)
         ENDIF
     ENDIF
 

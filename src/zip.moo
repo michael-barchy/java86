@@ -67,7 +67,7 @@ SUB ZipFind (JarIndex%, ClassName$)
 
                         PTR% = CP_CACHE%[JAR_RESULT%]
                         IF PTR% > 0 THEN
-                            MFREE(PTR%)
+                            CALL SafeMFree(PTR%)
                             CP_CACHE%[JAR_RESULT%] = 0
                             CP_POS&[JAR_RESULT%] = 0
                         ENDIF
@@ -109,7 +109,7 @@ SUB ZipFind (JarIndex%, ClassName$)
 
                     PTR% = CP_CACHE%[JAR_RESULT%]
                     IF PTR% > 0 THEN
-                        MFREE(PTR%)
+                        CALL SafeMFree(PTR%)
                         CP_CACHE%[JAR_RESULT%] = 0
                         CP_POS&[JAR_RESULT%] = 0
                     ENDIF

@@ -16,7 +16,7 @@ SUB ReadU(FileHandle%, Bytes%)
     U2% = MGET(Buff%)
     U1% = U%
 
-    MFREE(Buff%)
+    CALL SafeMFree(Buff%)
 END SUB
 
 SUB ParseClass(F%)
