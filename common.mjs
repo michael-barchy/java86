@@ -50,6 +50,7 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     execSync(`${javac} -d build src/platform/Native.java`);
     execSync(`${javac} -d build -classpath build src/Hello.java`);
     execSync(`${javac} -d build -classpath build src/util/StringUtils.java`);
+    execSync(`${javac} -d build -classpath build src/io/*.java`);
     execSync(`${javac} -d build -classpath build src/ui/*.java`);
     execSync(`${javac} -d build -classpath build src/driver/*.java`);
     execSync(`${javac} -d build -classpath build src/*.java`);
@@ -62,9 +63,13 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     const driver = new zip.Zip({ compressionLevel: 0 });
     driver.addFile('build/driver/Mouse.class', 'driver/Mouse.class');
     await driver.archive('release/DRIVER.JAR');
+    const io = new zip.Zip({ compressionLevel: 0 });
+    io.addFile('build/io/File.class', 'io/File.class');
+    await io.archive('release/IO.JAR');
     const ui = new zip.Zip({ compressionLevel: 0 });
     ui.addFile('build/ui/UI.class', 'ui/UI.class');
     ui.addFile('build/ui/Button.class', 'ui/Button.class');
+    ui.addFile('build/ui/Font.class', 'ui/Font.class');
     await ui.archive('release/UI.JAR');
     await zip.archiveFile('build/Hello.class', 'release/HELLO.JAR', { compressionLevel: 0 });
     await zip.archiveFile('build/Shell.class', 'release/SHELL.JAR', { compressionLevel: 0 });
@@ -194,6 +199,7 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
         'UTILS.JAR',
         'SHELL.JAR',
         'DEMO.JAR',
+        'IO.JAR',
         'UI.JAR',
         'MOOUI.JAR'
     ];

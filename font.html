@@ -1,0 +1,82 @@
+<html>
+
+<head>
+    <title>Java86 font creator</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/java86/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="bmp.js"></script>
+</head>
+
+<body>
+    <input id="style" value="16px sans-serif" onchange="setFont(this.value);">
+    <br>
+    <div id="char" style="display: inline-block; font: 16px sans-serif; line-height: 16px;"></div>
+    <br>
+    <a id="download"></a>
+    <br>
+    <canvas id="font" style="border: solid 1px; image-rendering: pixelated; image-rendering: crisp-edges;" width="0" height="0"></canvas>
+    <script type="text/javascript">
+
+        function setFont(style) {
+            var char = document.querySelector('#char');
+            char.style.font = style;
+            char.style.lineHeight = char.style.fontSize;
+            drawFont();
+        }
+
+        function drawChar(l) {
+            var char = document.querySelector('#char');
+            var font = document.querySelector('#font');
+            if (null === char || null === font) {
+                return;
+            }
+            var ctx = font.getContext('2d');
+            char.innerHTML = l;
+            console.debug(char.clientWidth, char.clientHeight);
+            var data = null;
+            if (font.width > 0 && font.height > 0) {
+                data = ctx.getImageData(0, 0, font.width, font.height);
+            }
+            font.width = char.clientWidth > font.width ? char.clientWidth : font.width;
+            font.height += char.clientHeight;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, font.width, font.height);
+            if (data) {
+                ctx.putImageData(data, 0, 0);
+            }
+            ctx.imageSmoothingEnabled = false;
+            ctx.fillStyle = 'black';
+            ctx.font = char.style.font;
+            ctx.fillText(l, 0, font.height - char.clientHeight);
+        }
+
+        function drawFont() {
+            var char = document.querySelector('#char');
+            var font = document.querySelector('#font');
+            font.width = 0;
+            font.height = 0;
+
+            for (var c = 33; c <= 255; c++) {
+                var l = String.fromCharCode(c);
+                drawChar(l);
+            }
+
+            var a = document.querySelector('#download');
+            if (font && a) {
+                var ctx = font.getContext('2d');
+                var imgData = ctx.getImageData(0, 0, font.width, font.height);
+                var img = bmp(imgData, true);
+                var fontName = char.style.fontFamily.toUpperCase().replace('SANS-', 'S').replace(/[^A-Z0-9]/g, '');
+                var fontSize = char.style.fontSize.replace(/[^0-9]/g, '');
+                a.innerText = 'Download';
+                a.download = fontName + fontSize + '.BMP';
+                a.href = URL.createObjectURL(img);
+            }
+        }
+
+        drawFont();
+
+    </script>
+</body>
+
+</html>

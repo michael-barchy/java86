@@ -77,7 +77,7 @@ public class UI {
         }
 
         int offset = x + (y * screenWidth);
-        Native.farmemsetb(line, 0xa0, 0x00, offset, 1, screenWidth, false);
+        Native.farmemsetb(line, 0xa0, 0x00, offset, 1, screenWidth, -1);
     }
 
     public static void drawLine(int x1, int y1, int x2, int y2, int color) {

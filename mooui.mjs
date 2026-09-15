@@ -1,3 +1,3 @@
 import { run } from './common.mjs';
 
-run(['MAKE.BAT', 'MOOUI.BAT'], false);
+run(['MAKE.BAT', 'SSERIF12.BMP', 'MOOUI.BAT'], false);

@@ -107,7 +107,7 @@ SUB InvokeNative(MethodRef$, Offset%)
         FARMEMSETB(B@, PTR&, PTR_OFFSET&, COUNT%)
         CODE_OFFSET% = Offset% + 3
     ENDIF
-    IF MethodRef$ = "farmemsetb([BIIIIIZ)V" THEN
+    IF MethodRef$ = "farmemsetb([BIIIIII)V" THEN
         CALL StackPop()
         MERGE% = StackValue%
         CALL StackPop()
@@ -136,7 +136,7 @@ SUB InvokeNative(MethodRef$, Offset%)
             COUNT% = SRC_LEN%
         ENDIF
         IF WIDTH% > 0 THEN
-            IF MERGE% <> 0 THEN
+            IF MERGE% >= 0 THEN
                 MASK% = MALLOC(COUNT%)
             ENDIF
             SRC_HEIGHT% = SRC_LEN% / COUNT%
@@ -157,7 +157,7 @@ SUB InvokeNative(MethodRef$, Offset%)
                         B$ = MGET(C%)
                         B% = ASC(B$)
                         B@ = B%
-                        IF B@ <> -1 THEN
+                        IF B% <> MERGE% THEN
                             C% = X% - 1
                             C% = C% + MASK%
                             MEMSETB(B@, C%, 1)
@@ -240,6 +240,12 @@ SUB InvokeNative(MethodRef$, Offset%)
             SRC_PTR% = SRC_PTR% + SRC_OFFSET%
             MEMFARTONEAR(PTR&, PTR_OFFSET&, SRC_PTR%, COUNT%)
         ENDIF
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "memptr([B)I" THEN
+        CALL StackPop()
+        SRC_PTR% = StackValue%
+        CALL StackPush(SRC_PTR%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 3
     ENDIF
     IF CODE_OFFSET% = -1 THEN

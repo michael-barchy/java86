@@ -281,6 +281,33 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL StackPush(STACK_POP%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 1
     ENDIF
+    IF OPCODE% = %OPCODE_ISHL THEN
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        StackValue% = STACK_POP1% SHL STACK_POP2%
+        CALL StackPush(StackValue%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
+    IF OPCODE% = %OPCODE_IAND THEN
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        StackValue% = STACK_POP1% AND STACK_POP2%
+        CALL StackPush(StackValue%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
+    IF OPCODE% = %OPCODE_IOR THEN
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        StackValue% = STACK_POP1% OR STACK_POP2%
+        CALL StackPush(StackValue%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_IINC THEN
         CALL ReadU(F%, 1)
         Index% = U1%

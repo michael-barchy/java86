@@ -21,7 +21,8 @@ const bootDisk = mount(bootBuffer, { type: 'fat12' });
 const bootFS = bootDisk.getFileSystem().getRoot();
 
 const script = (document.currentScript ?? document.getElementById('simulator'));
-const bat = [script.getAttribute('data-bat')].filter((s) => null !== s);
+const bat = (script.getAttribute('data-bat') ?? '').split(',').filter((s) => null !== s && '' !== s);
+const files = (script.getAttribute('data-files') ?? '').split(',').filter((s) => null !== s && '' !== s);
 
 const autoExec = [
     '@ECHO OFF',
@@ -84,10 +85,10 @@ const disk = mount(diskImage, { partition });
 
 const fileSystem = disk.getFileSystem().getRoot();
 
-for (const f of bat) {
-    const batData = await (await fetch(f)).arrayBuffer();
-    const batFile = fileSystem.makeFile(f, { size: 0 });
-    batFile.open().writeData(new Uint8Array(batData));
+for (const f of files) {
+    const fileData = await (await fetch(f)).arrayBuffer();
+    const file = fileSystem.makeFile(f, { size: 0 });
+    file.open().writeData(new Uint8Array(fileData));
 }
 
 // release files
@@ -99,6 +100,7 @@ const releaseFiles = [
     'UTILS.JAR',
     'SHELL.JAR',
     'DEMO.JAR',
+    'IO.JAR',
     'UI.JAR',
     'DRIVER.JAR',
     'MOOUI.JAR'

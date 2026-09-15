@@ -17,9 +17,11 @@ public class Native {
 
     public static native void farmemsetb(int b, int addressHigh, int addressLow, int offset, int count);
 
-    public static native void farmemsetb(byte[] b, int addressHigh, int addressLow, int offset, int count, int frameWidth, boolean merge);
+    public static native void farmemsetb(byte[] b, int addressHigh, int addressLow, int offset, int count, int frameWidth, int merge);
 
     public static native int farmemgetb(int addressHigh, int addressLow, int offset);
 
     public static native void farmemgetb(byte[] b, int addressHigh, int addressLow, int offset, int count, int frameWidth);
+
+    public static native int memptr(byte[] b);
 }

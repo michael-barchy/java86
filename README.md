@@ -30,6 +30,10 @@ Java86 works like the standard Java VM with many limitations:
 - Java86 does not support interfaces, fields or objects (everything is static)
 - All native calls are made on the "platform/Native" class (e.g. Native.print)
 
+### Supported opcodes
+
+[Click here for a list of supported opcodes](https://github.com/michael-barchy/java86/blob/main/src/opcode.h)
+
 Example:
 
 ```shell
