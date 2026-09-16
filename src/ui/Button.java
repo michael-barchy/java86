@@ -28,28 +28,33 @@ public class Button {
     }
 
     public static boolean mouseevent(int[] button, int mouseButton) {
-        int x = Mouse.x();
-        int y = Mouse.y();
-        int w = button[2];
-        int h = button[3];
-        int x2 = x + w;
-        int y2 = y + h;
-
         if (mouseButton != Mouse.button()) {
             return false;
         }
 
-        if (x < button[0]) {
+        int x = Mouse.x();
+        int x1 = button[0];
+
+        if (x < x1) {
             return false;
         }
 
-        if (y < button[1]) {
+        int y = Mouse.y();
+        int y1 = button[1];
+
+        if (y < y1) {
             return false;
         }
+
+        int w = button[2];
+        int x2 = x1 + w;
 
         if (x > x2) {
             return false;
         }
+
+        int h = button[3];
+        int y2 = y1 + h;
 
         if (y > y2) {
             return false;

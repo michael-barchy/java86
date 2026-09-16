@@ -113,9 +113,6 @@ for (const file of releaseFiles) {
     newFile.open().writeData(new Uint8Array(fileData));
 }
 
-const newFile = fileSystem.makeFile('CTMOUSE.EXE', { size: 0 });
-newFile.open().writeData(new Uint8Array(binFiles['ctmouse.exe']));
-
 new V86({
     screen_container: document.getElementById('screen'),
     bios: binFiles['seabios.bin'],
