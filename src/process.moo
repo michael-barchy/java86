@@ -66,6 +66,7 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
     PROCESS_CPOOL%[PID%] = 0
 
     'Free stack strings
+    STACK_MFREE_COUNT% = 0
     STACK_PTR% = PROCESS_STACK_PTR%[PID%]
     STACK_SIZE% = MGET(STACK_PTR%)
     IF STACK_SIZE% > 0 THEN
@@ -96,6 +97,8 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
                     IF STACK_REF% > 0 THEN
                         MEMSETW(0, STACK_OFFSET%, 1)
                         CALL SafeMFree(STACK_REF%)
+                        STACK_MFREE_COUNT% = STACK_MFREE_COUNT% + 1
+                        STACK_MFREE%[STACK_MFREE_COUNT%] = STACK_REF%
                     ENDIF
                 ELSE
                     STACK_OFFSET% = STACK_OFFSET% - 1
@@ -110,6 +113,7 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
     ENDIF
 
     'Free locals strings
+    LOCALS_MFREE_COUNT% = 0
     LOCALS_PTR% = PROCESS_LOCALS_PTR%[PID%]
     FOR I% = 1 TO %MAX_LOCALS
         LOCALS_OFFSET% = I%  - 1
@@ -137,6 +141,8 @@ SUB KillProcess(PID%, ReturnType@, ReturnValue%)
                 IF LOCALS_REF% > 0 THEN
                     MEMSETW(0, LOCALS_OFFSET%, 1)
                     CALL SafeMFree(LOCALS_REF%)
+                    LOCALS_MFREE_COUNT% = LOCALS_MFREE_COUNT% + 1
+                    LOCALS_MFREE%[LOCALS_MFREE_COUNT%] = LOCALS_REF%
                 ENDIF
             ELSE
                 LOCALS_OFFSET% = LOCALS_OFFSET% - 1
@@ -162,6 +168,22 @@ END SUB
 SUB CheckRef(Ref%)
     REF_USED% = 0
     IF Ref% > 0 THEN
+        IF STACK_MFREE_COUNT% > 0 THEN
+            FOR S% = 1 TO STACK_MFREE_COUNT%
+                IF STACK_MFREE%[S%] = Ref% THEN
+                    REF_USED% = 1 'Avoid double free
+                    EXIT SUB
+                ENDIF
+            NEXT
+        ENDIF
+        IF LOCALS_MFREE_COUNT% > 0 THEN
+            FOR L% = 1 TO LOCALS_MFREE_COUNT%
+                IF LOCALS_MFREE%[L%] = Ref% THEN
+                    REF_USED% = 1 'Avoid double free
+                    EXIT SUB
+                ENDIF
+            NEXT
+        ENDIF
         FOR P% = 1 TO %MAX_PROCESS
             IF PROCESS_FILE%[P%] > 0 THEN
                 STACK_PTR% = PROCESS_STACK_PTR%[P%]
@@ -208,4 +230,11 @@ SUB CheckRef(Ref%)
             ENDIF
         NEXT
     ENDIF
+END SUB
+
+SUB SafeMFree(PTR_TO_FREE%)
+    IF PTR_TO_FREE% = 0 THEN
+        EXIT SUB
+    ENDIF
+    MFREE(PTR_TO_FREE%) '
 END SUB

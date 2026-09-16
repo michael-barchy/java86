@@ -32,7 +32,6 @@
             }
             var ctx = font.getContext('2d');
             char.innerHTML = l;
-            console.debug(char.clientWidth, char.clientHeight);
             var data = null;
             if (font.width > 0 && font.height > 0) {
                 data = ctx.getImageData(0, 0, font.width, font.height);
@@ -46,8 +45,10 @@
             }
             ctx.imageSmoothingEnabled = false;
             ctx.fillStyle = 'black';
+            ctx.textBaseline = 'top';
             ctx.font = char.style.font;
             ctx.fillText(l, 0, font.height - char.clientHeight);
+            console.debug(l, 0, font.height - char.clientHeight, char.clientWidth, char.clientHeight);
         }
 
         function drawFont() {

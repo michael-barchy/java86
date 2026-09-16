@@ -254,13 +254,3 @@ SUB InvokeNative(MethodRef$, Offset%)
     ENDIF
 END SUB
 
-SUB SafeMFree(PTR_TO_FREE%)
-    IF PTR_TO_FREE% = 0 THEN
-        EXIT SUB
-    ENDIF
-    IF PTR_TO_FREE% = LAST_FREE_PTR% THEN
-        'EXIT SUB
-    ENDIF
-    MFREE(PTR_TO_FREE%) '
-    LAST_FREE_PTR% = PTR_TO_FREE%
-END SUB

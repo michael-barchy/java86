@@ -1,7 +1,6 @@
 import driver.Mouse;
 import platform.Native;
 import ui.Button;
-import ui.Font;
 import ui.UI;
 
 public class MooUI {
@@ -11,29 +10,9 @@ public class MooUI {
             UI.hLine(0, y, 320, y);
         }
 
-        // UI.fillRect(50, 50, 100, 100, 4);
-        // UI.drawRect(50, 50, 100, 100, 15);
-        // UI.drawLine(50, 50, 149, 149, 15);
-        // UI.drawLine(50, 149, 149, 50, 15);
-
-        byte[] hello = Native.getBytes("Hello");
-        int l = hello.length;
-        int[] font = Font.open("SSERIF12.BMP");
-        int x = 0;
-        int space = font[1] / 8;
-        if (-1 != font[0]) {
-            for (int c = 0; c < l; c++) {
-                int w = Font.drawChar(font, hello[c], x, 0);
-                int wOffset = (c - 33) + 3;
-                if (0 == font[wOffset]) {
-                    font[wOffset] = w;
-                }
-                x += w + space;
-            }
-            Font.close(font);
-        } else {
-            Native.print("Could not load font\r\n");
-        }
+        UI.fillRect(0, 0, 200, 20, 15);
+        UI.drawRect(0, 0, 200, 20, 0);
+        UI.drawString("Hello, world ! (print)", 5, 5, "SSERIF12.BMP");
 
         int[] closeButton = Button.draw(300, 5, 15, 15);
         UI.drawLine(302, 7, 312, 17, 0);

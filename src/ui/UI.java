@@ -170,4 +170,28 @@ public class UI {
         vLine(x, y, h, color);
         vLine(x + w - 1, y, h, color);
     }
+
+    public static void drawString(String s, int x, int y, String fontFile) {
+        byte[] b = Native.getBytes(s);
+        int l = b.length;
+        int[] font = Font.open(fontFile);
+        int ws = font[1] / 4;
+        int ls = font[1] / 8;
+        if (-1 != font[0]) {
+            for (int c = 0; c < l; c++) {
+                int w = ws;
+                if (b[c] > ' ') {
+                    w = Font.drawChar(font, b[c], x, y);
+                    int wOffset = (c - 33) + 3;
+                    if (0 == font[wOffset]) {
+                        font[wOffset] = w;
+                    }
+                }
+                x += w + ls;
+            }
+            Font.close(font);
+        } else {
+            Native.print("Could not load font\r\n");
+        }
+    }
 }

@@ -67,7 +67,7 @@ public class Font {
             return charWidth;
         }
 
-        int charIndex = c - 33;
+        int charIndex = c - 32;
         if (charIndex < 0) {
             return charWidth;
         }

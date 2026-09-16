@@ -6,6 +6,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     FSEEK(F%, POS&)
     CALL ReadU(F%, 1)
     OPCODE% = U1%
+    'PRINT "OPCODE: " + OPCODE% + "\r\n"
     IF OPCODE% = %OPCODE_ACONST_NULL THEN
         CALL StackPush(0, %TYPE_NULL)
         CODE_OFFSET% = Offset% + 1
@@ -528,18 +529,21 @@ SUB RunCode(F%, MethodIdx%, Offset%)
                 Params$ = MID(MethodRef$, S%)
                 L% = LEN(Params$)
                 IsArray% = 0
-                FOR P% = 1 TO L%
+                P% = 1
+                WHILE P% <= L%
                     C$ = MID(Params$, P%, 1)
                     IF C$ = "L" THEN
                         SP% = SINSTR(Params$, ";")
                         IF SP% > 0 THEN
                             ParamCount% = ParamCount% + 1
                             ParamTypes@[ParamCount%] = %TYPE_REF
-                            P% = SP%
+                            P% = SP% + 1
+                            Params$ = SPACE(SP%) + MID(Params$, P%)
+                            P% = P% - 1
                         ENDIF
                     ELSE
                         IF C$ = ")" THEN
-                            EXIT FOR
+                            EXIT WHILE
                         ENDIF
                         IF C$ <> "[" THEN
                             ParamCount% = ParamCount% + 1
@@ -553,7 +557,8 @@ SUB RunCode(F%, MethodIdx%, Offset%)
                             IsArray% = 1
                         ENDIF
                     ENDIF
-                NEXT
+                    P% = P% + 1
+                WEND
             ENDIF
             IF ParamCount% > 0 THEN
                 FOR I% = 1 TO ParamCount%

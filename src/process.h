@@ -13,6 +13,13 @@ DIM PROCESS_IDLE%[%MAX_PROCESS]
 DIM PROCESS_ID% = 0
 DIM REF_USED% = 0
 
+DIM STACK_MFREE_COUNT% = 0
+DIM STACK_MFREE%[%MAX_STACK]
+
+DIM LOCALS_MFREE_COUNT% = 0
+DIM LOCALS_MFREE%[%MAX_LOCALS]
+
 SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
 SUB KillProcess(PID%, ReturnType@, ReturnValue%)
 SUB CheckRef(Ref%)
+SUB SafeMFree(PTR_TO_FREE%)
