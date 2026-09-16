@@ -1,57 +1,4 @@
 SUB InvokeNative(MethodRef$, Offset%)
-    IF MethodRef$ = "print(Ljava/lang/String;)V" THEN
-        CALL StackPopString()
-        StackType@ = STACK_TYPE%
-        STR_PTR% = StackValue%
-        PRINT StackValue$
-        POS% = INSTR(StackValue$, "\r\n")
-        SLEN% = LEN(StackValue$) - 2
-        IF POS% = SLEN% THEN
-            'PRINT "Free memory: " + FREEMEM(0) + "\r\n"
-        ENDIF
-        IF StackType@ = %TYPE_REF THEN
-            CALL CheckRef(STR_PTR%)
-            IF REF_USED% = 0 THEN
-                CALL SafeMFree(STR_PTR%)
-            ENDIF
-        ENDIF
-        CODE_OFFSET% = Offset% + 3
-    ENDIF
-    IF MethodRef$ = "input()Ljava/lang/String;" THEN
-        INPUT STACK_PUSH$
-        CALL StackPushString(STACK_PUSH$)
-        CODE_OFFSET% = Offset% + 3
-    ENDIF
-    IF MethodRef$ = "getBytes(Ljava/lang/String;)[B" THEN
-        'Nothing to do here, the string is already on the stack
-        CODE_OFFSET% = Offset% + 3
-    ENDIF
-    IF MethodRef$ = "toString([B)Ljava/lang/String;" THEN
-        'Nothing to do here, the byte array is already on the stack
-        CODE_OFFSET% = Offset% + 3
-    ENDIF
-    IF MethodRef$ = "newProcess(Ljava/lang/String;)I" THEN
-        CALL StackPopString()
-        StackType@ = STACK_TYPE%
-        STR_PTR% = StackValue%
-        ParentId% = PROCESS_ID%
-        IF StackType@ = %TYPE_REF THEN
-            CALL CheckRef(STR_PTR%)
-            IF REF_USED% = 0 THEN
-                CALL SafeMFree(STR_PTR%)
-            ENDIF
-        ENDIF
-        CALL NewProcess(StackValue$, "main([Ljava/lang/String;)V", 0)
-        NewProcessId% = PROCESS_ID%
-        PROCESS_ID% = ParentId%
-        CALL StackPush(NewProcessId%, %TYPE_INT)
-        CODE_OFFSET% = Offset% + 3
-    ENDIF
-    IF MethodRef$ = "killProcess(I)V" THEN
-        CALL StackPop()
-        CALL KillProcess(StackValue%, %TYPE_NONE, 0)
-        CODE_OFFSET% = Offset% + 3
-    ENDIF
     IF MethodRef$ = "int86(I[I)[I" THEN
         CALL StackPop()
         REGS_PTR% = StackValue%
@@ -246,6 +193,59 @@ SUB InvokeNative(MethodRef$, Offset%)
         CALL StackPop()
         SRC_PTR% = StackValue%
         CALL StackPush(SRC_PTR%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "print(Ljava/lang/String;)V" THEN
+        CALL StackPopString()
+        StackType@ = STACK_TYPE%
+        STR_PTR% = StackValue%
+        PRINT StackValue$
+        POS% = INSTR(StackValue$, "\r\n")
+        SLEN% = LEN(StackValue$) - 2
+        IF POS% = SLEN% THEN
+            'PRINT "Free memory: " + FREEMEM(0) + "\r\n"
+        ENDIF
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STR_PTR%)
+            ENDIF
+        ENDIF
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "input()Ljava/lang/String;" THEN
+        INPUT STACK_PUSH$
+        CALL StackPushString(STACK_PUSH$)
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "getBytes(Ljava/lang/String;)[B" THEN
+        'Nothing to do here, the string is already on the stack
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "toString([B)Ljava/lang/String;" THEN
+        'Nothing to do here, the byte array is already on the stack
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "newProcess(Ljava/lang/String;)I" THEN
+        CALL StackPopString()
+        StackType@ = STACK_TYPE%
+        STR_PTR% = StackValue%
+        ParentId% = PROCESS_ID%
+        IF StackType@ = %TYPE_REF THEN
+            CALL CheckRef(STR_PTR%)
+            IF REF_USED% = 0 THEN
+                CALL SafeMFree(STR_PTR%)
+            ENDIF
+        ENDIF
+        CALL NewProcess(StackValue$, "main([Ljava/lang/String;)V", 0)
+        NewProcessId% = PROCESS_ID%
+        PROCESS_ID% = ParentId%
+        CALL StackPush(NewProcessId%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "killProcess(I)V" THEN
+        CALL StackPop()
+        CALL KillProcess(StackValue%, %TYPE_NONE, 0)
         CODE_OFFSET% = Offset% + 3
     ENDIF
     IF CODE_OFFSET% = -1 THEN

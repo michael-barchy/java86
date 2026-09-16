@@ -211,14 +211,14 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         STR_OFFSET% = STR_PTR% + Index%
         STR_OFFSET% = STR_OFFSET% + 2
         MEMSETB(VALUE@, STR_OFFSET%, 1)
-        ' IF StackType@ = %TYPE_REF THEN
-        '     IF STR_PTR% > 0 THEN
-        '         CALL CheckRef(STR_PTR%)
-        '         IF REF_USED% = 0 THEN
-        '             MFREE(STR_PTR%)
-        '         ENDIF
-        '     ENDIF
-        ' ENDIF
+        IF StackType@ = %TYPE_REF THEN
+            IF STR_PTR% > 0 THEN
+                CALL CheckRef(STR_PTR%)
+                IF REF_USED% = 0 THEN
+                    MFREE(STR_PTR%)
+                ENDIF
+            ENDIF
+        ENDIF
         CODE_OFFSET% = Offset% + 1
     ENDIF
     IF OPCODE% = %OPCODE_POP THEN

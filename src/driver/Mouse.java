@@ -12,22 +12,26 @@ public class Mouse {
         int oldX = 9999;
         int oldY = 9999;
 
-        byte[] mask = new byte[96];
+        byte[] mask = new byte[192];
         getMask(mask, 0, 0);
 
         byte[] cursor = {
-             0, 88, 88, 88, 88, 88, 88, 88,
-             0,  0, 88, 88, 88, 88, 88, 88,
-             0, 15,  0, 88, 88, 88, 88, 88,
-             0, 15, 15,  0, 88, 88, 88, 88,
-             0, 15, 15, 15,  0, 88, 88, 88,
-             0, 15, 15, 15, 15,  0, 88, 88,
-             0, 15, 15, 15, 15, 15,  0, 88,
-             0, 15, 15, 15, 15, 15, 15,  0,
-             0, 15, 15,  0,  0,  0,  0, 88,
-             0, 15,  0, 88, 88, 88, 88, 88,
-             0,  0, 88, 88, 88, 88, 88, 88,
-            88, 88, 88, 88, 88, 88, 88, 88
+             0, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88,
+             0,  0, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88,
+             0, 15,  0, 88, 88, 88, 88, 88, 88, 88, 88, 88,
+             0, 15, 15,  0, 88, 88, 88, 88, 88, 88, 88, 88,
+             0, 15, 15, 15,  0, 88, 88, 88, 88, 88, 88, 88,
+             0, 15, 15, 15, 15,  0, 88, 88, 88, 88, 88, 88,
+             0, 15, 15, 15, 15, 15,  0, 88, 88, 88, 88, 88,
+             0, 15, 15, 15, 15, 15, 15,  0, 88, 88, 88, 88,
+             0, 15, 15, 15, 15, 15, 15, 15,  0, 88, 88, 88,
+             0, 15, 15, 15, 15, 15, 15, 15, 15,  0, 88, 88,
+             0, 15, 15, 15, 15, 15, 15, 15, 15, 15,  0, 88,
+             0, 15, 15, 15, 15, 15,  0,  0,  0,  0,  0, 88,
+             0, 15, 15,  0, 15, 15,  0, 88, 88, 88, 88, 88,
+             0, 15,  0, 88,  0, 15, 15,  0, 88, 88, 88, 88,
+             0,  0, 88, 88,  0, 15, 15,  0, 88, 88, 88, 88,
+            88, 88, 88, 88, 88,  0,  0,  0, 88, 88, 88, 88
         };
 
         while (true) {
@@ -80,7 +84,7 @@ public class Mouse {
 
     public static void drawCursor(byte[] cursor, int x, int y, byte[] mask, int oldX, int oldY) {
         int screenWidth = 320;
-        int cursorWidth = 8;
+        int cursorWidth = 12;
 
         int offsetX = 0;
         int maskOffsetX = 0;
@@ -103,7 +107,7 @@ public class Mouse {
 
     public static void drawMask(byte[] mask, int x, int y) {
         int screenWidth = 320;
-        int maskWidth = 8;
+        int maskWidth = 12;
 
         int offsetX = x + (y  * screenWidth);
         Native.farmemsetb(mask, 0xa0, 0x00, offsetX, maskWidth, screenWidth, -1);
@@ -111,7 +115,7 @@ public class Mouse {
 
     public static void getMask(byte[] mask, int x, int y) {
         int screenWidth = 320;
-        int maskWidth = 8;
+        int maskWidth = 12;
 
         int offsetX = x + (y * screenWidth);
         Native.farmemgetb(mask, 0xa0, 0x00, offsetX, maskWidth, screenWidth);
