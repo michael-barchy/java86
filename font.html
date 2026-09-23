@@ -5,22 +5,41 @@
     <link rel="shortcut icon" type="image/x-icon" href="/java86/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="bmp.js"></script>
+    <script type="text/javascript" src="pal.js"></script>
 </head>
 
 <body>
-    <input id="style" value="16px sans-serif" onchange="setFont(this.value);">
+    <input id="input" value="16px sans-serif" onchange="setFont(this.value);">
+    <input type="checkbox" onchange="setBold(this.checked)" />
     <br>
     <div id="char" style="display: inline-block; font: 16px sans-serif; line-height: 16px;"></div>
+    <br>
+    <div id="dat"></div>
     <br>
     <a id="download"></a>
     <br>
     <canvas id="font" style="border: solid 1px; image-rendering: pixelated; image-rendering: crisp-edges;" width="0" height="0"></canvas>
     <script type="text/javascript">
 
+        var input = document.querySelector('#input');
+        var style = input.value;
+        input.value = localStorage.getItem('font') ?? style;
+        if (input.value !== style) {
+            setFont(input.value);
+        }
+        window.dat = [];
+
         function setFont(style) {
             var char = document.querySelector('#char');
             char.style.font = style;
             char.style.lineHeight = char.style.fontSize;
+            drawFont();
+            localStorage.setItem('font', style);
+        }
+
+        function setBold(bold) {
+            var char = document.querySelector('#char');
+            char.style.fontWeight = bold ? 'bold' : 'normal';
             drawFont();
         }
 
@@ -48,6 +67,7 @@
             ctx.textBaseline = 'top';
             ctx.font = char.style.font;
             ctx.fillText(l, 0, font.height - char.clientHeight);
+            window.dat[String(l).charCodeAt(0) - 33] = char.clientWidth;
             console.debug(l, 0, font.height - char.clientHeight, char.clientWidth, char.clientHeight);
         }
 
@@ -62,15 +82,29 @@
                 drawChar(l);
             }
 
+            var fontName = char.style.fontFamily.toUpperCase().replace('SANS-', 'S').replace(/[^A-Z0-9]/g, '');
+            var bold = 'bold' === char.style.fontWeight;
+            fontName = fontName.substring(0, bold ? 5 : 6) + (bold ? 'B' : '');
+            var fontSize = char.style.fontSize.replace(/[^0-9]/g, '');
+            var fontFile = fontName + fontSize + '.BMP';
+
+            document.getElementById('dat').innerText = 'Add/update this record to your FONTS.DAT file';
+            var pre = document.createElement('pre');
+            var r = (fontFile + '           ').substring(0, 12);
+            console.debug(window.dat);
+            for (var i in window.dat) {
+                r += String.fromCharCode(48 + window.dat[i]);
+            }
+            pre.innerText = r;
+            document.getElementById('dat').appendChild(pre);
+
             var a = document.querySelector('#download');
             if (font && a) {
                 var ctx = font.getContext('2d');
                 var imgData = ctx.getImageData(0, 0, font.width, font.height);
-                var img = bmp(imgData, true);
-                var fontName = char.style.fontFamily.toUpperCase().replace('SANS-', 'S').replace(/[^A-Z0-9]/g, '');
-                var fontSize = char.style.fontSize.replace(/[^0-9]/g, '');
+                var img = bmp(imgData, palette, true);
                 a.innerText = 'Download';
-                a.download = fontName + fontSize + '.BMP';
+                a.download = fontFile;
                 a.href = URL.createObjectURL(img);
             }
         }

@@ -1,11 +1,15 @@
-function bmp(imgData, transparency) {
+function bmp(imgData, palette, transparency) {
     var width = imgData.width;
     var height = imgData.height;
     var data = imgData.data;
 
-    var palette = [{ r: 0, g: 0, b: 0 }];
     var paletteMap = new Map();
-    paletteMap.set(0, 0);
+    var silver = (192 << 16) | (192 << 8) | 192;
+    paletteMap.set(silver, 7);
+    palette[7] = { r: 192, g: 192, b: 192 };
+    var gray = (128 << 16) | (128 << 8) | 128;
+    paletteMap.set(gray, 8);
+    palette[8] = { r: 128, g: 128, b: 128 };
     if (true === transparency) {
         var rgbKey = (255 << 16) | (255 << 8) | 255;
         paletteMap.set(rgbKey, 15);
@@ -18,30 +22,19 @@ function bmp(imgData, transparency) {
         var b = data[i + 2];
         var pixelPos = i / 4;
 
-        if (true === transparency && (255 !== r && 255 !== g && 255 !== b)) {
-            r = r < 0xaa ? 0 : 255;
-            g = g < 0xaa ? 0 : 255;
-            b = b < 0xaa ? 0 : 255;
-        }
-
         var rgbKey = (r << 16) | (g << 8) | b;
 
         if (!paletteMap.has(rgbKey)) {
-            if (palette.length < 256) {
-                palette.push({ r, g, b });
-                paletteMap.set(rgbKey, palette.length - 1);
-            } else {
-                var closestIndex = 0;
-                var minDistance = Infinity;
-                for (var p = 0; p < palette.length; p++) {
-                    var dist = Math.pow(r - palette[p].r, 2) + Math.pow(g - palette[p].g, 2) + Math.pow(b - palette[p].b, 2);
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        closestIndex = p;
-                    }
+            var closestIndex = 0;
+            var minDistance = Infinity;
+            for (var p = 0; p < palette.length; p++) {
+                var dist = Math.pow(r - palette[p].r, 2) + Math.pow(g - palette[p].g, 2) + Math.pow(b - palette[p].b, 2);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestIndex = p;
                 }
-                paletteMap.set(rgbKey, closestIndex);
             }
+            paletteMap.set(rgbKey, closestIndex);
         }
         pixelIndices[pixelPos] = paletteMap.get(rgbKey);
     }
@@ -71,7 +64,7 @@ function bmp(imgData, transparency) {
 
     view.setUint32(14, 40, true);
     view.setInt32(18, width, true);
-    view.setInt32(22, -height, true);
+    view.setInt32(22, height, true);
     view.setUint16(26, 1, true);
     view.setUint16(28, 8, true);
     view.setUint32(30, 0, true);
@@ -90,7 +83,7 @@ function bmp(imgData, transparency) {
     }
 
     var dataOffset = fileOffset;
-    for (var y = 0; y < height; y++) {
+    for (var y = height - 1; y >= 0; y--) {
         for (var x = 0; x < width; x++) {
             var index = pixelIndices[y * width + x];
             view.setUint8(dataOffset++, index);

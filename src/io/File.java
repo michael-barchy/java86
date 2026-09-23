@@ -91,18 +91,6 @@ public class File {
         return regs[0];
     }
 
-    public static int lof(int handle) {
-        if (handle < 0) {
-            return -1;
-        }
-
-        int currentPos = seek(handle, 1, 0);
-        int size = seek(handle, 2, 0);
-        seek(handle, 0, currentPos);
-
-        return size;
-    }
-
     public static byte[] toDosPath(String path) {
         byte[] b = Native.getBytes(path);
         byte[] dosPath = new byte[b.length + 1];

@@ -200,11 +200,6 @@ SUB InvokeNative(MethodRef$, Offset%)
         StackType@ = STACK_TYPE%
         STR_PTR% = StackValue%
         PRINT StackValue$
-        POS% = INSTR(StackValue$, "\r\n")
-        SLEN% = LEN(StackValue$) - 2
-        IF POS% = SLEN% THEN
-            'PRINT "Free memory: " + FREEMEM(0) + "\r\n"
-        ENDIF
         IF StackType@ = %TYPE_REF THEN
             CALL CheckRef(STR_PTR%)
             IF REF_USED% = 0 THEN

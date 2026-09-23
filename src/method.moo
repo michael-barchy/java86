@@ -5,7 +5,7 @@ SUB SearchMethodCode(FileHandle%, JarIdx%, ClassName$, MethodSignature$)
     CALL CalcCRC16 (CacheSignature$)
     TargetCRC16% = CalculatedCRC16%
 
-    FOR i% = 1 TO 100
+    FOR i% = 1 TO %MAX_METHOD_CACHE
         ValidIdx% = 0
         IF METHOD_CACHE_FILE_IDX%[i%] > 0 THEN
             ValidIdx% = 1
