@@ -8,17 +8,15 @@ public class Font {
     /**
      * Load font file and intialize charWidth cache
      *
-     * @return [fontHandle, charWidth, charHeight, charWidth x 222]
+     * @return [fontHandle, bmpWidth, bmpHeight, charWidth x 223]
      */
     public static int[] open(String path) {
-        int fontHandle = File.open(path, 0);
-        int w = getWidth(fontHandle);
-        int h = getHeight(fontHandle) / w;
+        int[] bmp = BMP.open(path);
 
         int[] font = new int[] {
-                fontHandle,
-                w,
-                h,
+                bmp[0],
+                bmp[1],
+                bmp[2],
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -31,78 +29,55 @@ public class Font {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0
+                0, 0, 0
         };
 
         return font;
     }
 
-    public static int getWidth(int fontHandle) {
-        byte[] widthBytes = new byte[4];
-        File.seek(fontHandle, 0, 18);
-        File.readBytes(fontHandle, widthBytes);
-
-        return (widthBytes[0] & 0xFF) | ((widthBytes[1] & 0xFF) << 8);
+    public static int getWidth(int[] font) {
+        return font[1];
     }
 
-    public static int getHeight(int fontHandle) {
-        byte[] heightBytes = new byte[4];
-        File.seek(fontHandle, 0, 22);
-        File.readBytes(fontHandle, heightBytes);
-        int h = (heightBytes[0] & 0xFF) | ((heightBytes[1] & 0xFF) << 8);
-        if (h < 0) {
-            h = -h;
-        }
-
-        return h;
+    public static int getHeight(int[] font) {
+        return font[2] / 223;
     }
 
-    public static int drawChar(int[] font, int c, int x, int y) {
-        int screenWidth = 320;
+    public static int copyChar(int[] font, byte[] dest, int destWidth, int c, int x, int y) {
         int fontHandle = font[0];
         int charWidth = font[1];
-        int charHeight = font[2];
+        int charHeight = font[2] / 223;
 
         if (-1 == fontHandle) {
             return charWidth;
         }
 
-        int charIndex = c - 32;
+        int charIndex = c - 33;
         if (charIndex < 0) {
             return charWidth;
         }
 
+        // Font is a vertical sprite image from char 33-255
         int charSize = charWidth * charHeight;
-        int charOffset = 1078 + (charIndex * charSize);
-        int byteOffset = 0;
-        int wOffset = (c - 33) + 3;
+        int sourceY = charIndex * charHeight;
+        int wOffset = charIndex + 3;
         int w = font[wOffset];
 
-        byte[] pixelBuffer = new byte[charSize];
-
-        for (int y1 = charHeight - 1; y1 >= 0; y1--) {
-            int fileOffset = charOffset - (y1 * charWidth);
-
-            File.seek(fontHandle, 0, fileOffset);
-            File.read(fontHandle, pixelBuffer, byteOffset, charWidth);
-
-            if (0 == w) {
-                for (int n = charWidth - 1; n >= 0; n--) {
-                    wOffset = byteOffset + n;
-                    if (0 == pixelBuffer[wOffset]) {
-                        if (n > w) {
-                            w = n;
-                        }
+        if (0 == w) {
+            byte[] charBuffer = new byte[charSize];
+            BMP.copy(font, charBuffer, charWidth, 0, 0, charWidth, 0, sourceY, charHeight);
+            for (int y1 = 0; y1 < charHeight; y1++) {
+                for (int x1 = charWidth - 1; x1 >= 0; x1--) {
+                    int offset = x1 + (y1 * charWidth);
+                    if (x1 > w && 0 == charBuffer[offset]) {
+                        w = x1;
                         break;
                     }
                 }
             }
-
-            byteOffset += charWidth;
         }
 
-        int offsetX = x + (y * screenWidth);
-        Native.farmemsetb(pixelBuffer, 0xa0, 0x00, offsetX, charWidth, screenWidth, 15);
+        BMP.copy(font, dest, destWidth, x, y, charWidth, 0, sourceY, charHeight);
 
         return w;
     }

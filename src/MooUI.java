@@ -10,9 +10,10 @@ public class MooUI {
             UI.hLine(0, y, 320, y);
         }
 
-        UI.fillRect(0, 0, 85, 20, 15);
-        UI.drawRect(0, 0, 85, 20, 0);
-        UI.drawString("Hello, world !", 5, 5, "SSERIF12.BMP");
+        UI.fillRect(0, 0, 180, 60, 15);
+        UI.drawRect(0, 0, 180, 60, 0);
+        UI.drawString("MooUI", 5, 5, "SSERIB24.BMP");
+        UI.drawString("Welcome !", 5, 45, "SSERIF12.BMP");
 
         int[] closeButton = Button.draw(300, 5, 15, 15);
         UI.drawLine(302, 7, 312, 17, 0);

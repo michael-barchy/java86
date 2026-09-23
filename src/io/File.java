@@ -81,6 +81,15 @@ public class File {
             return -1;
         }
 
+        if (1 == origin) {
+            if (0 == offset) {
+                return offset;
+            }
+            byte[] tmp = new byte[offset];
+            File.read(handle, tmp, 0, offset);
+            return tmp.length;
+        }
+
         int[] regs = new int[] { 0x4200 | (origin & 3), handle, 0, offset, 0, 0, 0, 0 };
         regs = Native.int86(0x21, regs);
 
@@ -89,18 +98,6 @@ public class File {
         }
 
         return regs[0];
-    }
-
-    public static int lof(int handle) {
-        if (handle < 0) {
-            return -1;
-        }
-
-        int currentPos = seek(handle, 1, 0);
-        int size = seek(handle, 2, 0);
-        seek(handle, 0, currentPos);
-
-        return size;
     }
 
     public static byte[] toDosPath(String path) {

@@ -1,6 +1,7 @@
 package driver;
 
 import platform.Native;
+import ui.BMP;
 
 public class Mouse {
     public static void main(String[] args) {
@@ -12,27 +13,26 @@ public class Mouse {
         int oldX = 9999;
         int oldY = 9999;
 
-        byte[] mask = new byte[192];
+        int[] bmp = BMP.open("CURSOR.BMP");
+        int cursorWidth = bmp[1];
+        int cursorHeight = bmp[2];
+
+        if (cursorWidth != 12) {
+            Native.print("Width is not 12!\r\n");
+        }
+
+        if (cursorHeight != 19) {
+            Native.print("Height is not 19!\r\n");
+        }
+
+        int cursorSize = cursorWidth * cursorHeight;
+        byte[] mask = new byte[cursorSize];
         getMask(mask, 0, 0);
 
-        byte[] cursor = {
-             0, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88,
-             0,  0, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88,
-             0, 15,  0, 88, 88, 88, 88, 88, 88, 88, 88, 88,
-             0, 15, 15,  0, 88, 88, 88, 88, 88, 88, 88, 88,
-             0, 15, 15, 15,  0, 88, 88, 88, 88, 88, 88, 88,
-             0, 15, 15, 15, 15,  0, 88, 88, 88, 88, 88, 88,
-             0, 15, 15, 15, 15, 15,  0, 88, 88, 88, 88, 88,
-             0, 15, 15, 15, 15, 15, 15,  0, 88, 88, 88, 88,
-             0, 15, 15, 15, 15, 15, 15, 15,  0, 88, 88, 88,
-             0, 15, 15, 15, 15, 15, 15, 15, 15,  0, 88, 88,
-             0, 15, 15, 15, 15, 15, 15, 15, 15, 15,  0, 88,
-             0, 15, 15, 15, 15, 15,  0,  0,  0,  0,  0, 88,
-             0, 15, 15,  0, 15, 15,  0, 88, 88, 88, 88, 88,
-             0, 15,  0, 88,  0, 15, 15,  0, 88, 88, 88, 88,
-             0,  0, 88, 88,  0, 15, 15,  0, 88, 88, 88, 88,
-            88, 88, 88, 88, 88,  0,  0,  0, 88, 88, 88, 88
-        };
+
+        byte[] cursor = new byte[cursorSize];
+        // Load whole BMP as cursor
+        BMP.copy(bmp, cursor, cursorWidth, 0, 0, cursorWidth, 0, 0, cursorHeight);
 
         while (true) {
             int newX = x();
@@ -102,7 +102,7 @@ public class Mouse {
 
         offsetX = x + (y * screenWidth);
         Native.farmemgetb(mask, 0xa0, 0x00, offsetX, cursorWidth, screenWidth);
-        Native.farmemsetb(cursor, 0xa0, 0x00, offsetX, cursorWidth, screenWidth, 88);
+        Native.farmemsetb(cursor, 0xa0, 0x00, offsetX, cursorWidth, screenWidth, 5);
     }
 
     public static void drawMask(byte[] mask, int x, int y) {

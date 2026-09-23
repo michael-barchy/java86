@@ -71,7 +71,7 @@ function bmp(imgData, transparency) {
 
     view.setUint32(14, 40, true);
     view.setInt32(18, width, true);
-    view.setInt32(22, -height, true);
+    view.setInt32(22, height, true);
     view.setUint16(26, 1, true);
     view.setUint16(28, 8, true);
     view.setUint32(30, 0, true);
@@ -90,7 +90,7 @@ function bmp(imgData, transparency) {
     }
 
     var dataOffset = fileOffset;
-    for (var y = 0; y < height; y++) {
+    for (var y = height - 1; y >= 0; y--) {
         for (var x = 0; x < width; x++) {
             var index = pixelIndices[y * width + x];
             view.setUint8(dataOffset++, index);

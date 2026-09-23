@@ -8,7 +8,8 @@
 </head>
 
 <body>
-    <input id="style" value="16px sans-serif" onchange="setFont(this.value);">
+    <input value="16px sans-serif" onchange="setFont(this.value);">
+    <input type="checkbox" onchange="setBold(this.checked)" />
     <br>
     <div id="char" style="display: inline-block; font: 16px sans-serif; line-height: 16px;"></div>
     <br>
@@ -21,6 +22,12 @@
             var char = document.querySelector('#char');
             char.style.font = style;
             char.style.lineHeight = char.style.fontSize;
+            drawFont();
+        }
+
+        function setBold(bold) {
+            var char = document.querySelector('#char');
+            char.style.fontWeight = bold ? 'bold' : 'normal';
             drawFont();
         }
 
@@ -67,7 +74,9 @@
                 var ctx = font.getContext('2d');
                 var imgData = ctx.getImageData(0, 0, font.width, font.height);
                 var img = bmp(imgData, true);
-                var fontName = char.style.fontFamily.toUpperCase().replace('SANS-', 'S').replace(/[^A-Z0-9]/g, '');
+                var fontName = char.style.fontFamily.toUpperCase().replace('SANS', 'S').replace(/[^A-Z0-9]/g, '');
+                var bold = 'bold' === char.style.fontWeight;
+                fontName = fontName.substring(0, bold ? 5 : 6) + (bold ? 'B' : '');
                 var fontSize = char.style.fontSize.replace(/[^0-9]/g, '');
                 a.innerText = 'Download';
                 a.download = fontName + fontSize + '.BMP';

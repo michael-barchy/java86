@@ -68,8 +68,9 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     await io.archive('release/IO.JAR');
     const ui = new zip.Zip({ compressionLevel: 0 });
     ui.addFile('build/ui/UI.class', 'ui/UI.class');
-    ui.addFile('build/ui/Button.class', 'ui/Button.class');
+    ui.addFile('build/ui/BMP.class', 'ui/BMP.class');
     ui.addFile('build/ui/Font.class', 'ui/Font.class');
+    ui.addFile('build/ui/Button.class', 'ui/Button.class');
     await ui.archive('release/UI.JAR');
     await zip.archiveFile('build/Hello.class', 'release/HELLO.JAR', { compressionLevel: 0 });
     await zip.archiveFile('build/Shell.class', 'release/SHELL.JAR', { compressionLevel: 0 });
