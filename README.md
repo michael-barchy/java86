@@ -30,9 +30,10 @@ Java86 works like the standard Java VM with many limitations:
 - Java86 does not support interfaces, fields or objects (everything is static)
 - All native calls are made on the "platform/Native" class (e.g. Native.print)
 
-### Supported opcodes
+### Documentation
 
-[Click here for a list of supported opcodes](https://github.com/michael-barchy/java86/blob/main/src/opcode.h)
+- [List of supported opcodes](https://github.com/michael-barchy/java86/blob/main/src/opcode.h)
+- [Classes documentation](https://michael-barchy.github.io/java86/docs/)
 
 Example:
 
@@ -76,4 +77,4 @@ public class Hello {
 
 ## Testing
 
-Try the [Simulator](https://michael-barchy.github.io/java86/simulator)
+Try the [Simulator](https://michael-barchy.github.io/java86/simulator/)

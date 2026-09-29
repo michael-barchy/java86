@@ -87,7 +87,7 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     await mooui.archive('release/MOOUI.JAR');
 
     try {
-        execSync('javadoc -d ./docs -sourcepath ./src -subpackages platform io util ui');
+        execSync('javadoc -quiet -notimestamp -d ./docs -sourcepath ./src -subpackages platform io util ui', { stdio : 'pipe' });
     } catch {
         // Ignore exception
     }
