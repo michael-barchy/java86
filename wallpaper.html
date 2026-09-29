@@ -1,0 +1,51 @@
+<html>
+
+<head>
+    <title>Java86 wallpaper creator</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/java86/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="bmp.js"></script>
+    <script type="text/javascript" src="pal.js"></script>
+</head>
+
+<body>
+    <input id="input" type="file" onchange="drawBitmap(this);">
+    <br>
+    <a id="download"></a>
+    <br>
+    <canvas id="image" style="border: solid 1px; image-rendering: pixelated; image-rendering: crisp-edges;" width="0" height="0"></canvas>
+    <script type="text/javascript">
+
+        function drawBitmap(file) {
+            if (0 === file.files.length) {
+                return;
+            }
+
+            var img = document.createElement('img');
+            img.onload = function() {
+                var image = document.querySelector('#image');
+                var ctx = image.getContext('2d');
+                image.width = img.width;
+                image.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                var fileName = file.files[0].name;
+                fileName = fileName.toUpperCase().replace(/[^0-9A-Z\.]/, '').trim();
+                fileName = fileName.substring(0, fileName.indexOf('.')).substring(0, 8) + '.BMP';
+
+                var a = document.querySelector('#download');
+                if (img && a) {
+                    var imgData = ctx.getImageData(0, 0, img.width, img.height);
+                    var content = bmp(imgData, palette, true);
+                    a.innerText = 'Download';
+                    a.download = fileName;
+                    a.href = URL.createObjectURL(content);
+                }
+            }
+            img.src = URL.createObjectURL(file.files[0]);
+        }
+
+    </script>
+</body>
+
+</html>

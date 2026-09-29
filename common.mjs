@@ -53,6 +53,8 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     execSync(`${javac} -d build -classpath build src/io/*.java`);
     execSync(`${javac} -d build -classpath build src/ui/*.java`);
     execSync(`${javac} -d build -classpath build src/driver/*.java`);
+    execSync(`${javac} -d build -classpath build src/mooui/TaskBar.java`);
+    execSync(`${javac} -d build -classpath build src/mooui/Desktop.java`);
     execSync(`${javac} -d build -classpath build src/*.java`);
     const native = new zip.Zip({ compressionLevel: 0 });
     native.addFile('build/platform/Native.class', 'platform/Native.class');
@@ -80,8 +82,15 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     demo.addFile('build/Proc2.class');
     await demo.archive('release/DEMO.JAR');
     const mooui = new zip.Zip({ compressionLevel: 0 });
-    mooui.addFile('build/MooUI.class');
+    mooui.addFile('build/mooui/Desktop.class', 'mooui/Desktop.class');
+    mooui.addFile('build/mooui/TaskBar.class', 'mooui/TaskBar.class');
     await mooui.archive('release/MOOUI.JAR');
+
+    try {
+        execSync('javadoc -d ./docs -sourcepath ./src -subpackages platform io util ui');
+    } catch {
+        // Ignore exception
+    }
 
     // freedos bootdisk
 

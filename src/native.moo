@@ -83,7 +83,7 @@ SUB InvokeNative(MethodRef$, Offset%)
             COUNT% = SRC_LEN%
         ENDIF
         IF WIDTH% > 0 THEN
-            IF MERGE% >= 0 THEN
+            IF MERGE% <> 0 THEN
                 MASK% = MALLOC(COUNT%)
             ENDIF
             SRC_HEIGHT% = SRC_LEN% / COUNT%
@@ -119,6 +119,9 @@ SUB InvokeNative(MethodRef$, Offset%)
             SRC_PTR% = SRC_PTR% + 2
             SRC_PTR% = SRC_PTR% + SRC_OFFSET%
             MEMNEARTOFAR(SRC_PTR%, PTR&, PTR_OFFSET&, COUNT%)
+        ENDIF
+        IF MERGE% <> 0 THEN
+            MFREE(MASK%)
         ENDIF
         CODE_OFFSET% = Offset% + 3
     ENDIF

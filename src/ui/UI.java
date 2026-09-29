@@ -171,6 +171,23 @@ public class UI {
         vLine(x + w - 1, y, h, color);
     }
 
+    public static void drawImage(String path, int x, int y) {
+        int screenWidth = 320;
+        int[] image = BMP.open(path);
+        int w = image[1];
+        int h = image[2];
+        int rows = 10;
+        int rowHeight = w * rows;
+        byte[] row = new byte[rowHeight];
+        for (int y1 = 0; y1 < h; y1 += rows) {
+            BMP.copy(image, row, w, 0, 0, w, 0, y1, rows);
+            int y2 = y + y1;
+            int offset = x + (y2 * screenWidth);
+            Native.farmemsetb(row, 0xa0, 0x00, offset, w, screenWidth, 0);
+        }
+        BMP.close(image);
+    }
+
     public static void drawString(String s, int x, int y, String fontFile) {
         int screenWidth = 320;
         byte[] b = Native.getBytes(s);

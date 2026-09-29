@@ -28,6 +28,17 @@ SUB ParseCmd ()
             EXIT WHILE
         ENDIF
     WEND
+    L% = LEN(TARGET_CLASS$)
+    temp$ = ""
+    FOR C% = 1 TO L%
+        C$ = MID(TARGET_CLASS$, C%, 1)
+        IF C$ = "." THEN
+            temp$ = temp$ + "/"
+        ELSE
+            temp$ = temp$ + C$
+        ENDIF
+    NEXT
+    TARGET_CLASS$ = temp$
 END SUB
 
 SUB GetJarFile(JarIdx%)

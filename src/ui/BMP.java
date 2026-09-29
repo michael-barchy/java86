@@ -6,9 +6,7 @@ import platform.Native;
 public class BMP {
 
     /**
-     * Load font file and intialize charWidth cache
-     *
-     * @return [fileHandle, charWidth, charHeight, charWidth x 222]
+     * @return [fileHandle, imageWidth, imageHeight]
      */
     public static int[] open(String path) {
         int fileHandle = File.open(path, 0);
