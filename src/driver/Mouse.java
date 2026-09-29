@@ -19,12 +19,13 @@ public class Mouse {
 
         int cursorSize = cursorWidth * cursorHeight;
         byte[] mask = new byte[cursorSize];
-        getMask(mask, 0, 0);
+        getMask(mask, cursorWidth, 0, 0);
 
 
         byte[] cursor = new byte[cursorSize];
         // Load whole BMP as cursor
         BMP.copy(bmp, cursor, cursorWidth, 0, 0, cursorWidth, 0, 0, cursorHeight);
+        BMP.close(bmp);
 
         while (true) {
             int newX = x();
@@ -36,7 +37,7 @@ public class Mouse {
                 }
             }
 
-            drawCursor(cursor, newX, newY, mask, oldX, oldY);
+            drawCursor(cursor, cursorWidth, newX, newY, mask, oldX, oldY);
 
             oldX = newX;
             oldY = newY;
@@ -74,9 +75,8 @@ public class Mouse {
         return regs[3];
     }
 
-    public static void drawCursor(byte[] cursor, int x, int y, byte[] mask, int oldX, int oldY) {
+    public static void drawCursor(byte[] cursor, int w, int x, int y, byte[] mask, int oldX, int oldY) {
         int screenWidth = 320;
-        int cursorWidth = 12;
 
         int offsetX = 0;
         int maskOffsetX = 0;
@@ -90,27 +90,25 @@ public class Mouse {
         }
 
         maskOffsetX = oldX + (oldY * screenWidth);
-        Native.farmemsetb(mask, 0xa0, 0x00, maskOffsetX, cursorWidth, screenWidth, -1);
+        Native.farmemsetb(mask, 0xa0, 0x00, maskOffsetX, w, screenWidth, -1);
 
         offsetX = x + (y * screenWidth);
-        Native.farmemgetb(mask, 0xa0, 0x00, offsetX, cursorWidth, screenWidth);
-        Native.farmemsetb(cursor, 0xa0, 0x00, offsetX, cursorWidth, screenWidth, 5);
+        Native.farmemgetb(mask, 0xa0, 0x00, offsetX, w, screenWidth);
+        Native.farmemsetb(cursor, 0xa0, 0x00, offsetX, w, screenWidth, 5);
     }
 
-    public static void drawMask(byte[] mask, int x, int y) {
+    public static void drawMask(byte[] mask, int w, int x, int y) {
         int screenWidth = 320;
-        int maskWidth = 12;
 
         int offsetX = x + (y  * screenWidth);
-        Native.farmemsetb(mask, 0xa0, 0x00, offsetX, maskWidth, screenWidth, -1);
+        Native.farmemsetb(mask, 0xa0, 0x00, offsetX, w, screenWidth, 0);
     }
 
-    public static void getMask(byte[] mask, int x, int y) {
+    public static void getMask(byte[] mask, int w, int x, int y) {
         int screenWidth = 320;
-        int maskWidth = 12;
 
         int offsetX = x + (y * screenWidth);
-        Native.farmemgetb(mask, 0xa0, 0x00, offsetX, maskWidth, screenWidth);
+        Native.farmemgetb(mask, 0xa0, 0x00, offsetX, w, screenWidth);
     }
 
     public static boolean pressed(int button) {

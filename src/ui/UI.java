@@ -196,9 +196,7 @@ public class UI {
         int charWidth = Font.getWidth(font);
         int charHeight = Font.getHeight(font);
         int ws = font[1] / 4;
-        int ls = font[1] / 8;
-        int maxCharWidth = charWidth + ls;
-        int bufferWidth = maxCharWidth * l;
+        int bufferWidth = charWidth * l;
         int bufferSize = bufferWidth * charHeight;
         byte[] buffer = new byte[bufferSize];
         for (int n = 0; n < bufferSize; n++) {
@@ -213,7 +211,7 @@ public class UI {
                     int wOffset = (b[c] - 33) + 3;
                     w = font[wOffset];
                 }
-                x1 += w + ls;
+                x1 += w;
             }
             Font.close(font);
             int offset = x + (y * screenWidth);
