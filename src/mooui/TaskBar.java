@@ -5,13 +5,13 @@ import ui.Button;
 import ui.UI;
 
 public class TaskBar {
-    public static int[] draw(int x, int y, int w, int h) {
+    public static int[] draw(int x, int y, int w, int h, int[] font) {
         int[] taskbar = Button.draw(x, y, w, h);
 
         // Start button
         int[] startButton = startButton(taskbar);
         Button.draw(startButton[0], startButton[1], startButton[2], startButton[3]);
-        UI.drawString("Start", x + 8, y + 5, "SYSTEM12.BMP");
+        UI.drawString("Start", x + 8, y + 5, font, true);
 
         // Start menu
         int[] startMenu = startMenu(taskbar);
@@ -48,9 +48,17 @@ public class TaskBar {
         Native.farmemsetb(mask, 0xa0, 0x00, offsetX, startMenu[2], screenWidth, 0);
     }
 
-    public static void showStartMenu(int[] startMenu) {
-        Button.draw(startMenu[0], startMenu[1], startMenu[2], startMenu[3]);
+    public static void showStartMenu(int[] startMenu, int[] font) {
+        Button.draw(startMenu[0], startMenu[1], startMenu[2], startMenu[3]); // @todo - use Menu (crash)
         int[] shutdownMenu = shutdownMenu(startMenu);
-        UI.drawString("Shutdown", shutdownMenu[0], shutdownMenu[1], "SYSTEM12.BMP");
+        UI.drawString("Shutdown", shutdownMenu[0] + 4, shutdownMenu[1] + 2, font, true);
+    }
+
+    public static void toggleStartMenu(int[] startMenu, byte[] mask, int[] font, boolean show) {
+        if (show) {
+            showStartMenu(startMenu, font);
+        } else {
+            hideStartMenu(startMenu, mask);
+        }
     }
 }

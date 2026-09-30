@@ -220,6 +220,10 @@ SUB InvokeNative(MethodRef$, Offset%)
         'Nothing to do here, the string is already on the stack
         CODE_OFFSET% = Offset% + 3
     ENDIF
+    IF MethodRef$ = "getBytes(I)[B" THEN
+        'Nothing to do here, the array is already on the stack
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
     IF MethodRef$ = "toString([B)Ljava/lang/String;" THEN
         'Nothing to do here, the byte array is already on the stack
         CODE_OFFSET% = Offset% + 3

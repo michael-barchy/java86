@@ -75,6 +75,11 @@ public class Hello {
 }
 ```
 
+## UI
+
+- Generate font sprites [here](https://michael-barchy.github.io/java86/font.html)
+- Convert image to BMP [here](https://michael-barchy.github.io/java86/wallpaper.html) (e.g. wallpaper)
+
 ## Testing
 
-Try the [Simulator](https://michael-barchy.github.io/java86/simulator/)
+Try the [Simulator](https://michael-barchy.github.io/java86/simulator.html)

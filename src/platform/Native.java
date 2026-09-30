@@ -7,6 +7,11 @@ public class Native {
 
     public static native byte[] getBytes(String s);
 
+    /**
+     * Get bytes from memptr value
+     */
+    public static native byte[] getBytes(int ptr);
+
     public static native String toString(byte[] b);
 
     public static native int newProcess(String className);

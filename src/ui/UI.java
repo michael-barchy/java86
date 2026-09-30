@@ -188,11 +188,10 @@ public class UI {
         BMP.close(image);
     }
 
-    public static void drawString(String s, int x, int y, String fontFile) {
+    public static byte[] drawString(String s, int x, int y, int[] font, boolean draw) {
         int screenWidth = 320;
         byte[] b = Native.getBytes(s);
         int l = b.length;
-        int[] font = Font.open(fontFile);
         int charWidth = Font.getWidth(font);
         int charHeight = Font.getHeight(font);
         int ws = font[1] / 4;
@@ -203,21 +202,20 @@ public class UI {
             buffer[n] = 15;
         }
         int x1 = 0;
-        if (-1 != font[0]) {
-            for (int c = 0; c < l; c++) {
-                int w = ws;
-                if (b[c] > ' ') {
-                    Font.copyChar(font, buffer, bufferWidth, b[c], x1, 0);
-                    int wOffset = (b[c] - 33) + 3;
-                    w = font[wOffset];
-                }
-                x1 += w;
+        for (int c = 0; c < l; c++) {
+            int w = ws;
+            if (b[c] > ' ') {
+                Font.copyChar(font, buffer, bufferWidth, b[c], x1, 0);
+                int wOffset = (b[c] - 33) + 3;
+                w = font[wOffset];
             }
-            Font.close(font);
-            int offset = x + (y * screenWidth);
-            Native.farmemsetb(buffer, 0xa0, 0x00, offset, bufferWidth, screenWidth, 15);
-        } else {
-            Native.print("Could not load font\r\n");
+            x1 += w;
         }
+        int offset = x + (y * screenWidth);
+        if (draw) {
+            Native.farmemsetb(buffer, 0xa0, 0x00, offset, bufferWidth, screenWidth, 15);
+        }
+
+        return buffer;
     }
 }
