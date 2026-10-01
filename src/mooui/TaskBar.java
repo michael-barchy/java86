@@ -2,6 +2,7 @@ package mooui;
 
 import platform.Native;
 import ui.Button;
+import ui.Menu;
 import ui.UI;
 
 public class TaskBar {
@@ -49,7 +50,7 @@ public class TaskBar {
     }
 
     public static void showStartMenu(int[] startMenu, int[] font) {
-        Button.draw(startMenu[0], startMenu[1], startMenu[2], startMenu[3]); // @todo - use Menu (crash)
+        Menu.draw(startMenu[0], startMenu[1], startMenu[2], startMenu[3]);
         int[] shutdownMenu = shutdownMenu(startMenu);
         UI.drawString("Shutdown", shutdownMenu[0] + 4, shutdownMenu[1] + 2, font, true);
     }

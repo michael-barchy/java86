@@ -1,6 +1,5 @@
 SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
-    CALL CalcCRC16(ClassName$)
-    TargetCRC16% = CalculatedCRC16%
+    TargetCRC16% = HASH2(ClassName$)
     FOR I% = 1 TO %MAX_CP_CACHE
         IF CP_CACHE%[I%] > 0 THEN
             IF CP_CRC%[I%] = TargetCRC16% THEN

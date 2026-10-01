@@ -38,7 +38,7 @@ SUB ParseCmd ()
             temp$ = temp$ + C$
         ENDIF
     NEXT
-    TARGET_CLASS$ = temp$
+    TARGET_CLASS$ = RTRIM(temp$)
 END SUB
 
 SUB GetJarFile(JarIdx%)

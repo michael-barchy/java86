@@ -1,4 +1,4 @@
-SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
+SUB NewProcess(ClassName$, MethodDescriptor$, ParentId%)
     PID% = 0
     FOR I% = 1 TO %MAX_PROCESS
         IF PROCESS_FILE%[I%] = 0 THEN
@@ -33,7 +33,7 @@ SUB NewProcess(ClassName$, MethodDescription$, ParentId%)
             CALL ReadU(F%, 2) 'Ignore super class index
             CALL ReadU(F%, 2) 'Ignore interfaces count (@todo : fail if not 0)
             CALL ReadU(F%, 2) 'Ignore fields count (@todo : fail if not 0)
-            Call SearchMethodCode(F%, JAR_RESULT%, ClassName$, MethodDescription$)
+            Call SearchMethodCode(F%, JAR_RESULT%, ClassName$, MethodDescriptor$)
             POS& = METHOD_CACHE_POS&[METHOD_CACHE_IDX%]
             CODE_END% = METHOD_CACHE_LEN%[METHOD_CACHE_IDX%]
             CODE_END% = CODE_END% - 1
@@ -236,5 +236,5 @@ SUB SafeMFree(PTR_TO_FREE%)
     IF PTR_TO_FREE% = 0 THEN
         EXIT SUB
     ENDIF
-    MFREE(PTR_TO_FREE%) '
+    MFREE(PTR_TO_FREE%)
 END SUB

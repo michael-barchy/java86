@@ -3,7 +3,6 @@ BEGIN DEF
 #INCLUDE java.h
 #INCLUDE src/main.h
 #INCLUDE src/cmd.h
-#INCLUDE src/crc16.h
 #INCLUDE src/zip.h
 #INCLUDE src/classf.h
 #INCLUDE src/cpool.h
@@ -12,6 +11,14 @@ BEGIN DEF
 #INCLUDE src/native.h
 #INCLUDE src/process.h
 
+SUB OnExit
+
 BEGIN CODE
 
+ATEXIT(OnExit)
+
 CALL Java
+
+SUB OnExit()
+    PRINT "\r\n"
+END SUB

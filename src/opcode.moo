@@ -6,7 +6,6 @@ SUB RunCode(F%, MethodIdx%, Offset%)
     FSEEK(F%, POS&)
     CALL ReadU(F%, 1)
     OPCODE% = U1%
-    'PRINT "OPCODE: " + OPCODE% + "\r\n"
     IF OPCODE% = %OPCODE_ACONST_NULL THEN
         CALL StackPush(0, %TYPE_NULL)
         CODE_OFFSET% = Offset% + 1
@@ -215,7 +214,7 @@ SUB RunCode(F%, MethodIdx%, Offset%)
             IF STR_PTR% > 0 THEN
                 CALL CheckRef(STR_PTR%)
                 IF REF_USED% = 0 THEN
-                    MFREE(STR_PTR%)
+                    CALL SafeMFree(STR_PTR%)
                 ENDIF
             ENDIF
         ENDIF

@@ -1,9 +1,8 @@
 SUB SearchMethodCode(FileHandle%, JarIdx%, ClassName$, MethodSignature$)
     METHOD_CACHE_IDX%  = 0
 
-    CacheSignature$ = ClassName$ + MethodSignature$
-    CALL CalcCRC16 (CacheSignature$)
-    TargetCRC16% = CalculatedCRC16%
+    CacheSignature$ = ClassName$ + "." + MethodSignature$
+    TargetCRC16% = HASH2(CacheSignature$)
 
     FOR i% = 1 TO %MAX_METHOD_CACHE
         ValidIdx% = 0

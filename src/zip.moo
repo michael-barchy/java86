@@ -1,8 +1,7 @@
 SUB ZipFind (JarIndex%, ClassName$)
     JAR_RESULT% = 0
 
-    CALL CalcCRC16(ClassName$)
-    TargetCRC16% = CalculatedCRC16%
+    TargetCRC16% = HASH2(ClassName$)
 
     FOR i% = 1 TO %MAX_JAR_CACHE
         ValidIdx% = 0
@@ -41,6 +40,10 @@ SUB ZipFind (JarIndex%, ClassName$)
                 CentralHeader^ = FGET(F%)
 
                 IF CentralHeader.Signature& = 02014B50h THEN
+                    IF CentralHeader.FileNameLength% = 0 THEN
+                        PRINT "Invalid zip entry...\r\n"
+                        END
+                    ENDIF
                     CurrentName$ = SPACE(CentralHeader.FileNameLength%)
                     CurrentName$ = FGET(F%)
 
