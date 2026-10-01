@@ -1,5 +1,6 @@
 package mooui;
 
+import driver.Mouse;
 import platform.Native;
 import ui.Button;
 import ui.Menu;
@@ -56,10 +57,14 @@ public class TaskBar {
     }
 
     public static void toggleStartMenu(int[] startMenu, byte[] mask, int[] font, boolean show) {
+        int[] mouseHide = Mouse.hide();
+
         if (show) {
             showStartMenu(startMenu, font);
         } else {
             hideStartMenu(startMenu, mask);
         }
+
+        Mouse.show(mouseHide);
     }
 }

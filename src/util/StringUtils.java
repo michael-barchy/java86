@@ -13,7 +13,7 @@ public class StringUtils {
         byte[] b1 = Native.getBytes(s1);
         byte[] b2 = Native.getBytes(s2);
 
-        if (b1.length == 0 && b2.length == 0) {
+        if (0 == b1.length && b2.length == 0) {
             return true;
         }
 
@@ -21,7 +21,7 @@ public class StringUtils {
             return false;
         }
 
-        if (b1.length == 0) {
+        if (0 == b1.length) {
             return false;
         }
 

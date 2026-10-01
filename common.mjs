@@ -47,14 +47,15 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     const sp = 'darwin' === platform() ? ':' : ';';
     const cp = `./bin/janino-3.1.9.jar${sp}./bin/commons-compiler-3.1.9.jar`;
     const javac = `java -classpath "${cp}" org.codehaus.commons.compiler.samples.CompilerDemo`;
+    const classpath = ['.', 'src', 'build'].join(sp);
     execSync(`${javac} -d build src/platform/Native.java`);
-    execSync(`${javac} -d build -classpath build src/Hello.java`);
-    execSync(`${javac} -d build -classpath build src/util/StringUtils.java`);
-    execSync(`${javac} -d build -classpath build src/io/*.java`);
-    execSync(`${javac} -d build -classpath build src/ui/*.java`);
-    execSync(`${javac} -d build -classpath build src/mooui/TaskBar.java`);
-    execSync(`${javac} -d build -classpath build src/mooui/Desktop.java`);
-    execSync(`${javac} -d build -classpath build src/*.java`);
+    execSync(`${javac} -d build -classpath ${classpath} src/Hello.java`);
+    execSync(`${javac} -d build -classpath ${classpath} src/util/StringUtils.java`);
+    execSync(`${javac} -d build -classpath ${classpath} src/io/*.java`);
+    execSync(`${javac} -d build -classpath ${classpath} src/ui/*.java`);
+    execSync(`${javac} -d build -classpath ${classpath} src/driver/*.java`);
+    execSync(`${javac} -d build -classpath ${classpath} src/mooui/*.java`);
+    execSync(`${javac} -d build -classpath ${classpath} src/*.java`);
     const native = new zip.Zip({ compressionLevel: 0 });
     native.addFile('build/platform/Native.class', 'platform/Native.class');
     await native.archive('release/NATIVE.JAR');
@@ -88,7 +89,7 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     await mooui.archive('release/MOOUI.JAR');
 
     try {
-        execSync('javadoc -quiet -notimestamp -d ./docs -sourcepath ./src -subpackages platform io util ui', { stdio : 'pipe' });
+        execSync('javadoc -quiet -notimestamp -d ./docs -sourcepath ./src -subpackages platform driver io util ui', { stdio : 'pipe' });
     } catch {
         // Ignore exception
     }

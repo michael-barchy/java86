@@ -21,7 +21,6 @@ public class Mouse {
         byte[] mask = new byte[cursorSize];
         getMask(mask, cursorWidth, 0, 0);
 
-
         byte[] cursor = new byte[cursorSize];
         // Load whole BMP as cursor
         BMP.copy(bmp, cursor, cursorWidth, 0, 0, cursorWidth, 0, 0, cursorHeight);
@@ -156,11 +155,11 @@ public class Mouse {
         int offsetX = 0;
         int maskOffsetX = 0;
 
-        if (oldX == 9999) {
+        if (9999 == oldX) {
             oldX = 0;
         }
 
-        if (oldY == 9999) {
+        if (9999 == oldY) {
             oldY = 0;
         }
 
@@ -169,6 +168,11 @@ public class Mouse {
 
         offsetX = x + (y * screenWidth);
         Native.farmemgetb(mask, 0xa0, 0x00, offsetX, w, screenWidth);
+
+        if (x >= 320 || y >= 200) {
+            return;
+        }
+
         Native.farmemsetb(cursor, 0xa0, 0x00, offsetX, w, screenWidth, 5);
     }
 
@@ -184,5 +188,33 @@ public class Mouse {
 
         int offsetX = x + (y * screenWidth);
         Native.farmemgetb(mask, 0xa0, 0x00, offsetX, w, screenWidth);
+    }
+
+    /**
+     * Hides the cursor by positionning the cursor to magic coordinates [320, 200].
+     * Returns previous cursor position. Use the returned array [x, y] to show cursor.
+     */
+    public static int[] hide() {
+        int screenWidth = 320;
+        int screenHeight = 200;
+        int x = x();
+        int y = y();
+
+        Native.int86(0x33, new int[]{ 0x7, 0, screenWidth, screenHeight, 0, 0, 0, 0 });
+        Native.int86(0x33, new int[]{ 0x8, 0, screenWidth, screenHeight, 0, 0, 0, 0 });
+        Native.int86(0x33, new int[]{ 0x4, 0, screenWidth, screenHeight, 0, 0, 0, 0 });
+
+        return new int[]{ x, y };
+    }
+
+    public static void show(int[] coords) {
+        int screenWidth = 320;
+        int screenHeight = 200;
+        int x = coords[0];
+        int y = coords[1];
+
+        Native.int86(0x33, new int[]{ 0x7, 0, 0, screenWidth, 0, 0, 0, 0 });
+        Native.int86(0x33, new int[]{ 0x8, 0, 0, screenHeight, 0, 0, 0, 0 });
+        Native.int86(0x33, new int[]{ 0x4, 0, x, y, 0, 0, 0, 0 });
     }
 }

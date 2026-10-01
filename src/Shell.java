@@ -18,16 +18,16 @@ public class Shell {
     public static void parseCmd(String cmd) {
         cmd = StringUtils.trim(cmd);
 
-        if (cmd == "") {
+        if ("" == cmd) {
             return;
         }
 
-        if (cmd == "help") {
+        if ("help" == cmd) {
             help();
             return;
         }
 
-        if (cmd == "exit") {
+        if ("exit" == cmd) {
             return;
         }
 
