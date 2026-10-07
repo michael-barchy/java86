@@ -77,7 +77,7 @@ public class UI {
         }
 
         int offset = x + (y * screenWidth);
-        Native.farmemsetb(line, 0xa0, 0x00, offset, 1, screenWidth, -1);
+        Native.farmemsetb(line, 0xa0, 0x00, offset, 1, screenWidth, -1, 0);
     }
 
     public static void drawLine(int x1, int y1, int x2, int y2, int color) {
@@ -183,12 +183,12 @@ public class UI {
             BMP.copy(image, row, w, 0, 0, w, 0, y1, rows);
             int y2 = y + y1;
             int offset = x + (y2 * screenWidth);
-            Native.farmemsetb(row, 0xa0, 0x00, offset, w, screenWidth, 0);
+            Native.farmemsetb(row, 0xa0, 0x00, offset, w, screenWidth, 0, 0);
         }
         BMP.close(image);
     }
 
-    public static byte[] drawString(String s, int x, int y, int[] font, boolean draw) {
+    public static byte[] drawString(String s, int x, int y, int[] font, boolean draw, boolean invert) {
         int screenWidth = 320;
         byte[] b = Native.getBytes(s);
         int l = b.length;
@@ -213,9 +213,27 @@ public class UI {
         }
         int offset = x + (y * screenWidth);
         if (draw) {
-            Native.farmemsetb(buffer, 0xa0, 0x00, offset, bufferWidth, screenWidth, 15);
+            byte[] invertMapping = new byte[] {
+                15, 14, 13, 12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2,  1,  0,
+                31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16
+            };
+            int invertPtr = Native.memptr(invertMapping);
+            Native.farmemsetb(buffer, 0xa0, 0x00, offset, bufferWidth, screenWidth, invert ? 0 : 15, invert ? invertPtr : 0);
         }
 
         return buffer;
+    }
+
+    public static byte[] invert() {
+        byte[] palette = new byte[256];
+        for (int i = 0; i < 256; i++) {
+            if (i < 16) {
+                palette[i] = (byte) (15 - i);
+                continue;
+            }
+            palette[i] = (byte) (255 - i);
+        }
+
+        return palette;
     }
 }

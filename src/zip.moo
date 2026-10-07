@@ -40,7 +40,7 @@ SUB ZipFind (JarIndex%, ClassName$)
                 CentralHeader^ = FGET(F%)
 
                 IF CentralHeader.Signature& = 02014B50h THEN
-                    IF CentralHeader.FileNameLength% = 0 THEN
+                    IF CentralHeader.FileNameLength% <= 0 THEN
                         PRINT "Invalid zip entry...\r\n"
                         END
                     ENDIF
@@ -62,22 +62,29 @@ SUB ZipFind (JarIndex%, ClassName$)
                         FoundPosition& = FoundPosition& + LocalHeader.ExtraFieldLength%
 
                         JAR_CACHE_COUNT% = JAR_CACHE_COUNT% + 1
-                        IF JAR_CACHE_COUNT% > %MAX_JAR_CACHE THEN
-                            JAR_CACHE_COUNT% = 1
-                        ENDIF
-
                         JAR_RESULT% = JAR_CACHE_COUNT%
+                        IF JAR_CACHE_COUNT% > %MAX_JAR_CACHE THEN
+                            CALL JarCacheFree()
+                        ENDIF
 
                         PTR% = CP_CACHE%[JAR_RESULT%]
                         IF PTR% > 0 THEN
+                            'PRINT "Freeing old cache for jar index " + PTR% + "\r\n"
                             CALL SafeMFree(PTR%)
                             CP_CACHE%[JAR_RESULT%] = 0
                             CP_POS&[JAR_RESULT%] = 0
                         ENDIF
+                        FOR I% = 1 TO %MAX_METHOD_CACHE
+                            IF METHOD_CACHE_FILE_IDX%[I%] = JAR_RESULT% THEN
+                                METHOD_CACHE_CRC%[I%] = 0
+                                METHOD_CACHE_FILE_IDX%[I%] = 0
+                            ENDIF
+                        NEXT
 
                         JAR_CACHE_IDX%[JAR_RESULT%] = JarIndex%
                         JAR_CACHE_POS&[JAR_RESULT%] = FoundPosition&
                         JAR_CACHE_CRC%[JAR_RESULT%] = TargetCRC16%
+                        JAR_H%[JAR_RESULT%] = 0
 
                         FCLOSE(F%)
                         EXIT SUB
@@ -93,6 +100,10 @@ SUB ZipFind (JarIndex%, ClassName$)
         WHILE FEOF(F%) = FALSE
             LocalHeader^ = FGET(F%)
             IF LocalHeader.Signature& = 04034B50h THEN
+                IF LocalHeader.FileNameLength% <= 0 THEN
+                    PRINT "Invalid zip entry...\r\n"
+                    END
+                ENDIF
                 CurrentName$ = SPACE(LocalHeader.FileNameLength%)
                 CurrentName$ = FGET(F%)
 
@@ -104,22 +115,29 @@ SUB ZipFind (JarIndex%, ClassName$)
                     FoundPosition& = FPOS(F%)
 
                     JAR_CACHE_COUNT% = JAR_CACHE_COUNT% + 1
-                    IF JAR_CACHE_COUNT% > %MAX_JAR_CACHE THEN
-                        JAR_CACHE_COUNT% = 1
-                    ENDIF
-
                     JAR_RESULT% = JAR_CACHE_COUNT%
+                    IF JAR_CACHE_COUNT% > %MAX_JAR_CACHE THEN
+                        CALL JarCacheFree()
+                    ENDIF
 
                     PTR% = CP_CACHE%[JAR_RESULT%]
                     IF PTR% > 0 THEN
+                        'PRINT "Freeing old cache for jar index " + PTR% + "\r\n"
                         CALL SafeMFree(PTR%)
                         CP_CACHE%[JAR_RESULT%] = 0
                         CP_POS&[JAR_RESULT%] = 0
                     ENDIF
+                    FOR I% = 1 TO %MAX_METHOD_CACHE
+                        IF METHOD_CACHE_FILE_IDX%[I%] = JAR_RESULT% THEN
+                            METHOD_CACHE_CRC%[I%] = 0
+                            METHOD_CACHE_FILE_IDX%[I%] = 0
+                        ENDIF
+                    NEXT
 
                     JAR_CACHE_IDX%[JAR_RESULT%] = JarIndex%
                     JAR_CACHE_POS&[JAR_RESULT%] = FoundPosition&
                     JAR_CACHE_CRC%[JAR_RESULT%] = TargetCRC16%
+                    JAR_H%[JAR_RESULT%] = 0
 
                     FCLOSE(F%)
                     EXIT SUB
@@ -135,4 +153,31 @@ SUB ZipFind (JarIndex%, ClassName$)
     ENDIF
 
     FCLOSE(F%)
+END SUB
+
+SUB JarCacheFree()
+    FOR I% = 1 TO %MAX_JAR_CACHE
+        FOUND% = 0
+        FOR P% = 1 TO %MAX_PROCESS
+            IF PROCESS_FILE%[P%] > 0 THEN
+                CP% = PROCESS_CPOOL%[P%]
+                IF CP_JAR%[CP%] = I% THEN
+                    FOUND% = 1
+                    EXIT FOR
+                ENDIF
+            ENDIF
+        NEXT
+        IF FOUND% = 0 THEN
+            JAR_CACHE_IDX%[I%] = 0
+            JAR_CACHE_CRC%[I%] = 0
+            JAR_CACHE_POS&[I%] = 0
+            JAR_H%[I%] = 0
+            JAR_RESULT% = I%
+            EXIT SUB
+        ENDIF
+    NEXT
+
+    JAR_RESULT% = 0
+    PRINT "Out of jar cache space\r\n"
+    END
 END SUB

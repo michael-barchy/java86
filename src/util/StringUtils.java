@@ -116,4 +116,65 @@ public class StringUtils {
 
         return equals(s, s2);
     }
+
+    public static String concat(String s1, String s2) {
+        byte[] b1 = Native.getBytes(s1);
+        byte[] b2 = Native.getBytes(s2);
+
+        int len1 = b1.length;
+        int len2 = b2.length;
+
+        byte[] b = new byte[len1 + len2];
+
+        for (int i = 0; i < len1; i++) {
+            b[i] = b1[i];
+        }
+
+        for (int i = 0; i < len2; i++) {
+            b[len1 + i] = b2[i];
+        }
+
+        return Native.toString(b);
+    }
+
+    public static String valueOf(byte b) {
+        int a = (int) b < 0 ? (int) -b : (int) b;
+        int len = a >= 100 ? 3 : (a >= 10 ? 2 : 1);
+        if ((int) b < 0) {
+            len++;
+        }
+        byte[] b1 = new byte[len];
+
+        for (int i = len - 1; i >= 0; i--) {
+            b1[i] = (byte) ((b % 10) + 48);
+            b /= 10;
+        }
+
+        return Native.toString(b1);
+    }
+
+    public static String valueOf(int i) {
+        int len = 1;
+        int a = i < 0 ? -i : i;
+        if (a >= 10000) {
+            len = 5;
+        } else if (a >= 1000) {
+            len = 4;
+        } else if (a >= 100) {
+            len = 3;
+        } else if (a >= 10) {
+            len = 2;
+        }
+        if (i < 0) {
+            len++;
+        }
+        byte[] b1 = new byte[len];
+
+        for (int j = len - 1; j >= 0; j--) {
+            b1[j] = (byte) ((i % 10) + 48);
+            i /= 10;
+        }
+
+        return Native.toString(b1);
+    }
 }

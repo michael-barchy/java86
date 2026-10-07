@@ -2,7 +2,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { V86 } from 'v86';
 import { fdisk, mkfsvfat, mount } from 'libmount';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, unlinkSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { platform } from 'os';
 import readline from 'readline';
@@ -48,14 +48,20 @@ export async function run(bat = ['MAKE.BAT'], exitOnBuild = true) {
     const cp = `./bin/janino-3.1.9.jar${sp}./bin/commons-compiler-3.1.9.jar`;
     const javac = `java -classpath "${cp}" org.codehaus.commons.compiler.samples.CompilerDemo`;
     const classpath = ['.', 'src', 'build'].join(sp);
+    ['build/platform', 'build/driver', 'build/io', 'build/util', 'build/ui', 'build/mooui'].forEach((dir) => {
+        if (existsSync(dir)) {
+            readdirSync(dir).forEach((f) => {
+                if (f.endsWith('.class')) {
+                    const filePath = join(__dirname, dir, f);
+                    unlinkSync(filePath);
+                }
+            });
+            rmSync(dir, { recursive: true });
+        }
+    });
+    const classes = ['src/*.java', 'src/platform/*.java', 'src/driver/*.java', 'src/io/*.java', 'src/util/*.java', 'src/ui/*.java', 'src/mooui/*.java'];
     execSync(`${javac} -d build src/platform/Native.java`);
-    execSync(`${javac} -d build -classpath ${classpath} src/Hello.java`);
-    execSync(`${javac} -d build -classpath ${classpath} src/util/StringUtils.java`);
-    execSync(`${javac} -d build -classpath ${classpath} src/io/*.java`);
-    execSync(`${javac} -d build -classpath ${classpath} src/ui/*.java`);
-    execSync(`${javac} -d build -classpath ${classpath} src/driver/*.java`);
-    execSync(`${javac} -d build -classpath ${classpath} src/mooui/*.java`);
-    execSync(`${javac} -d build -classpath ${classpath} src/*.java`);
+    execSync(`${javac} -d build -classpath ${classpath} ${classes.join(' ')}`);
     const native = new zip.Zip({ compressionLevel: 0 });
     native.addFile('build/platform/Native.class', 'platform/Native.class');
     await native.archive('release/NATIVE.JAR');

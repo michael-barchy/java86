@@ -144,11 +144,12 @@ loadScripts(document, 'script');</script>
  int&nbsp;color)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static byte[]</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#drawString(java.lang.String,int,int,int%5B%5D,boolean)" class="member-name-link">drawString</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;s,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#drawString(java.lang.String,int,int,int%5B%5D,boolean,boolean)" class="member-name-link">drawString</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;s,
  int&nbsp;x,
  int&nbsp;y,
  int[]&nbsp;font,
- boolean&nbsp;draw)</code></div>
+ boolean&nbsp;draw,
+ boolean&nbsp;invert)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#fillRect(int,int,int,int,int)" class="member-name-link">fillRect</a><wbr>(int&nbsp;x,
@@ -167,17 +168,20 @@ loadScripts(document, 'script');</script>
  int&nbsp;w,
  int&nbsp;color)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#putPixel(int,int,int)" class="member-name-link">putPixel</a><wbr>(int&nbsp;x,
- int&nbsp;y,
- int&nbsp;color)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static byte[]</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#invert()" class="member-name-link">invert</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#vLine(int,int,int,int)" class="member-name-link">vLine</a><wbr>(int&nbsp;x,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#putPixel(int,int,int)" class="member-name-link">putPixel</a><wbr>(int&nbsp;x,
+ int&nbsp;y,
+ int&nbsp;color)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#vLine(int,int,int,int)" class="member-name-link">vLine</a><wbr>(int&nbsp;x,
  int&nbsp;y,
  int&nbsp;h,
  int&nbsp;color)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -293,13 +297,20 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="drawString(java.lang.String,int,int,int[],boolean)">
+<section class="detail" id="drawString(java.lang.String,int,int,int[],boolean,boolean)">
 <h3>drawString</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">drawString</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;s,
  int&nbsp;x,
  int&nbsp;y,
  int[]&nbsp;font,
- boolean&nbsp;draw)</span></div>
+ boolean&nbsp;draw,
+ boolean&nbsp;invert)</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="invert()">
+<h3>invert</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">invert</span>()</div>
 </section>
 </li>
 </ul>

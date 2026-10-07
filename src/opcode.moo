@@ -275,6 +275,15 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         CALL StackPush(STACK_DIV%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 1
     ENDIF
+    IF OPCODE% = %OPCODE_IMOD THEN
+        CALL StackPop()
+        STACK_POP2% = StackValue%
+        CALL StackPop()
+        STACK_POP1% = StackValue%
+        STACK_MOD% = STACK_POP1% MOD STACK_POP2%
+        CALL StackPush(STACK_MOD%, %TYPE_INT)
+        CODE_OFFSET% = Offset% + 1
+    ENDIF
     IF OPCODE% = %OPCODE_INEG THEN
         CALL StackPop()
         STACK_POP% = StackValue% * -1
@@ -619,12 +628,14 @@ SUB RunCode(F%, MethodIdx%, Offset%)
         ENDIF
         Array$ = ""
         IF ArrayLen% > 0 THEN
+            ArraySize% = 0
             IF ArrayType% = %ARRAY_TYPE_BYTE THEN
-                Array$ = SPACE(ArrayLen%)
-                CALL StackPushString(Array$)
+                ArraySize% = ArrayLen% * 1
             ENDIF
             IF ArrayType% = %ARRAY_TYPE_INT THEN
                 ArraySize% = ArrayLen% * 2
+            ENDIF
+            IF ArraySize% > 0 THEN
                 ArraySize% = ArraySize% + 2
                 Array% = MALLOC(ArraySize%)
                 MEMSETB(0, Array%, ArraySize%)

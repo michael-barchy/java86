@@ -49,6 +49,7 @@ DIM JAR_CACHE_COUNT%
 DIM JAR_RESULT%
 
 SUB ZipFind (JarIndex%, ClassName$)
+SUB JarCacheFree()
 
 BUNDLE LocalHeader ZipLocalHeader
 BUNDLE CentralHeader ZipCentralHeader

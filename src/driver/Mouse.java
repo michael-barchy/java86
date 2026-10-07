@@ -149,6 +149,35 @@ public class Mouse {
         return regs[1] > 0;
     }
 
+    public static boolean enter(int[] coords) {
+        int[] regs = { 0x3, 0, 0, 0, 0, 0, 0, 0 };
+        regs = Native.int86(0x33, regs);
+
+        int x = regs[2];
+        if (x < coords[0]) {
+            return false;
+        }
+
+        int y = regs[3];
+        if (y < coords[1]) {
+            return false;
+        }
+
+        if (x > coords[0] + coords[2]) {
+            return false;
+        }
+
+        if (y > coords[1] + coords[3]) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean exit(int[] coords) {
+        return !enter(coords);
+    }
+
     public static void drawCursor(byte[] cursor, int w, int x, int y, byte[] mask, int oldX, int oldY) {
         int screenWidth = 320;
 
@@ -164,7 +193,7 @@ public class Mouse {
         }
 
         maskOffsetX = oldX + (oldY * screenWidth);
-        Native.farmemsetb(mask, 0xa0, 0x00, maskOffsetX, w, screenWidth, -1);
+        Native.farmemsetb(mask, 0xa0, 0x00, maskOffsetX, w, screenWidth, -1, 0);
 
         offsetX = x + (y * screenWidth);
         Native.farmemgetb(mask, 0xa0, 0x00, offsetX, w, screenWidth);
@@ -173,14 +202,14 @@ public class Mouse {
             return;
         }
 
-        Native.farmemsetb(cursor, 0xa0, 0x00, offsetX, w, screenWidth, 5);
+        Native.farmemsetb(cursor, 0xa0, 0x00, offsetX, w, screenWidth, 5, 0);
     }
 
     public static void drawMask(byte[] mask, int w, int x, int y) {
         int screenWidth = 320;
 
         int offsetX = x + (y  * screenWidth);
-        Native.farmemsetb(mask, 0xa0, 0x00, offsetX, w, screenWidth, 0);
+        Native.farmemsetb(mask, 0xa0, 0x00, offsetX, w, screenWidth, 0, 0);
     }
 
     public static void getMask(byte[] mask, int w, int x, int y) {

@@ -20,30 +20,11 @@ SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
         ENDIF
     NEXT
 
-    IF CP_IDX% = 0 THEN
-        FOR I% = 1 TO %MAX_CP_CACHE
-            FOUND% = 0
-            FOR P% = 1 TO %MAX_PROCESS
-                IF PROCESS_CPOOL%[P%] = I% THEN
-                    FOUND% = 1
-                    EXIT FOR
-                ENDIF
-            NEXT
-            IF FOUND% = 0 THEN
-                CP_IDX% = I%
-                PTR% = CP_CACHE%[CP_IDX%]
-                CALL SafeMFree(PTR%)
-                EXIT FOR
-            ENDIF
-        NEXT
-    ENDIF
+    CALL ConstantPoolFree()
 
     IF CP_IDX% = 0 THEN
-        CP_IDX% = 1
-        PTR% = CP_CACHE%[CP_IDX%]
-        IF PTR% > 0 THEN
-            CALL SafeMFree(PTR%)
-        ENDIF
+        PRINT "Out of constant pool cache\r\n"
+        END
     ENDIF
 
     CALL ReadU(FileHandle%, 2)
@@ -257,5 +238,28 @@ SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
         CP_ENTRY% = NAME_INDEX%
         CP_ENTRY2% = TYPE_INDEX%
         EXIT SUB
+    ENDIF
+END SUB
+
+SUB ConstantPoolFree()
+    IF CP_IDX% = 0 THEN
+        FOR I% = 1 TO %MAX_CP_CACHE
+            FOUND% = 0
+            FOR P% = 1 TO %MAX_PROCESS
+                IF PROCESS_CPOOL%[P%] = I% THEN
+                    FOUND% = 1
+                    EXIT FOR
+                ENDIF
+            NEXT
+            IF FOUND% = 0 THEN
+                CP_IDX% = I%
+                PTR% = CP_CACHE%[CP_IDX%]
+                IF PTR% > 0 THEN
+                    PRINT "Freeing old cache for jar index " + PTR% + "\r\n"
+                    CALL SafeMFree(PTR%)
+                ENDIF
+                EXIT FOR
+            ENDIF
+        NEXT
     ENDIF
 END SUB

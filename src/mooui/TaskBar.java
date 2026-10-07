@@ -3,7 +3,9 @@ package mooui;
 import driver.Mouse;
 import platform.Native;
 import ui.Button;
+import ui.Font;
 import ui.Menu;
+import ui.MenuItem;
 import ui.UI;
 
 public class TaskBar {
@@ -13,7 +15,7 @@ public class TaskBar {
         // Start button
         int[] startButton = startButton(taskbar);
         Button.draw(startButton[0], startButton[1], startButton[2], startButton[3]);
-        UI.drawString("Start", x + 8, y + 5, font, true);
+        UI.drawString("Start", x + 8, y + 5, font, true, false);
 
         // Start menu
         int[] startMenu = startMenu(taskbar);
@@ -30,8 +32,8 @@ public class TaskBar {
         return new int[] { taskbar[0], taskbar[1] - 75, 75, 75 };
     }
 
-    public static int[] shutdownMenu(int[] startMenu) {
-        return new int[] { startMenu[0] + 5, startMenu[1] + 5, 65, 20 };
+    public static int[] shutdownMenu(int[] startMenu, int[] font) {
+        return MenuItem.create(startMenu, 0, font);
     }
 
     public static byte[] maskStartMenu(int[] startMenu) {
@@ -47,13 +49,13 @@ public class TaskBar {
     public static void hideStartMenu(int[] startMenu, byte[] mask) {
         int screenWidth = 320;
         int offsetX = startMenu[0] + (startMenu[1] * screenWidth);
-        Native.farmemsetb(mask, 0xa0, 0x00, offsetX, startMenu[2], screenWidth, 0);
+        Native.farmemsetb(mask, 0xa0, 0x00, offsetX, startMenu[2], screenWidth, 0, 0);
     }
 
     public static void showStartMenu(int[] startMenu, int[] font) {
         Menu.draw(startMenu[0], startMenu[1], startMenu[2], startMenu[3]);
-        int[] shutdownMenu = shutdownMenu(startMenu);
-        UI.drawString("Shutdown", shutdownMenu[0] + 4, shutdownMenu[1] + 2, font, true);
+        int[] shutdownMenu = shutdownMenu(startMenu, font);
+        MenuItem.draw(shutdownMenu, "Shutdown", font, false);
     }
 
     public static void toggleStartMenu(int[] startMenu, byte[] mask, int[] font, boolean show) {

@@ -54,7 +54,9 @@ SUB InvokeNative(MethodRef$, Offset%)
         FARMEMSETB(B@, PTR&, PTR_OFFSET&, COUNT%)
         CODE_OFFSET% = Offset% + 3
     ENDIF
-    IF MethodRef$ = "farmemsetb([BIIIIII)V" THEN
+    IF MethodRef$ = "farmemsetb([BIIIIIII)V" THEN
+        CALL StackPop()
+        MAPPING% = StackValue%
         CALL StackPop()
         MERGE% = StackValue%
         CALL StackPop()
@@ -83,7 +85,7 @@ SUB InvokeNative(MethodRef$, Offset%)
             COUNT% = SRC_LEN%
         ENDIF
         IF WIDTH% > 0 THEN
-            IF MERGE% <> 0 THEN
+            IF MERGE% >= 0 THEN
                 MASK% = MALLOC(COUNT%)
             ENDIF
             SRC_HEIGHT% = SRC_LEN% / COUNT%
@@ -95,7 +97,7 @@ SUB InvokeNative(MethodRef$, Offset%)
                 H_OFFSET& = H% - 1
                 H_OFFSET& = H_OFFSET& * WIDTH%
                 H_OFFSET& = H_OFFSET& + PTR_OFFSET&
-                IF MERGE% <> 0 THEN
+                IF MERGE% >= 0 THEN
                     MEMFARTONEAR(PTR&, H_OFFSET&, MASK%, COUNT%)
                     FOR X% = 1 TO COUNT%
                         C% = X% - 1
@@ -103,6 +105,16 @@ SUB InvokeNative(MethodRef$, Offset%)
                         B$ = CHR(0)
                         B$ = MGET(C%)
                         B% = ASC(B$)
+                        IF MAPPING% > 0 THEN
+                            MAPPING_LEN% = MGET(MAPPING%)
+                            IF MAPPING_LEN% >= B% THEN
+                                MAPPING_OFFSET% = MAPPING% + 2
+                                MAPPING_OFFSET% = MAPPING_OFFSET% + B%
+                                B$ = CHR(0)
+                                B$ = MGET(MAPPING_OFFSET%)
+                                B% = ASC(B$)
+                            ENDIF
+                        ENDIF
                         B@ = B%
                         IF B% <> MERGE% THEN
                             C% = X% - 1
@@ -120,7 +132,7 @@ SUB InvokeNative(MethodRef$, Offset%)
             SRC_PTR% = SRC_PTR% + SRC_OFFSET%
             MEMNEARTOFAR(SRC_PTR%, PTR&, PTR_OFFSET&, COUNT%)
         ENDIF
-        IF MERGE% <> 0 THEN
+        IF MERGE% >= 0 THEN
             MFREE(MASK%)
         ENDIF
         CODE_OFFSET% = Offset% + 3
@@ -248,6 +260,25 @@ SUB InvokeNative(MethodRef$, Offset%)
     IF MethodRef$ = "killProcess(I)V" THEN
         CALL StackPop()
         CALL KillProcess(StackValue%, %TYPE_NONE, 0)
+        CODE_OFFSET% = Offset% + 3
+    ENDIF
+    IF MethodRef$ = "freemem(I)I" THEN
+        CALL StackPop()
+        IF StackValue% <= 0 THEN
+            Free% = FREEMEM(0)
+        ENDIF
+        IF StackValue% = 1 THEN
+            Free% = FREEMEM(1)
+        ENDIF
+        IF StackValue% = 2 THEN
+            Free% = FREEMEM(2)
+        ENDIF
+        IF StackValue% >= 2 THEN
+            Free% = FREEMEM(0)
+            Free% = Free% + FREEMEM(1)
+            Free% = Free% + FREEMEM(2)
+        ENDIF
+        CALL StackPush(Free%, %TYPE_INT)
         CODE_OFFSET% = Offset% + 3
     ENDIF
     IF CODE_OFFSET% = -1 THEN

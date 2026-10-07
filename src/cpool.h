@@ -28,3 +28,4 @@ DIM CP_ENTRY$
 
 SUB ReadConstantPool(FileHandle%, JarIdx%, ClassName$)
 SUB GetConstantPoolEntry(CP_IDX%, EntryIdx%, FileHandle%)
+SUB ConstantPoolFree()
