@@ -14,7 +14,7 @@ public class Desktop {
         int screenHeight = 200;
 
         UI.create();
-        UI.drawImage("CIRCUIT.BMP", 0, 0);
+        UI.drawImage("PRAIRIE.BMP", 0, 0);
 
         int[] font = Font.open("SYSTEM12.BMP");
 
@@ -57,10 +57,7 @@ public class Desktop {
                         MenuItem.draw(shutdownMenu, "Shutdown", font, shutdownMenuHover);
                     }
                 }
-                if (Mouse.down(shutdownMenu)) {
-                    MenuItem.draw(shutdownMenu, "Shutdown", font, true);
-                }
-                if (Mouse.up(shutdownMenu)) {
+                if (Mouse.click(shutdownMenu) && 1 == button) {
                     break;
                 }
             }
